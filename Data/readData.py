@@ -100,21 +100,54 @@ def load_wv(path):
     return loadmat(path)['waveforms']
 
 def load_mux(num, session):
+    ''' [name, ?, ?, ?, empty] '''
     muxpath = join(dat_base,'Data Files', str(num))
-    mux = loadmat(muxpath+'.mat')['mux']
-    import pdb; pdb.set_trace()
+    mux = loadmat(muxpath+'.mat')['mux'][0][0]
+    
+    # String the ending '.cmb'
+    fn = mux[1][0][session][0][0].split('.')[0]
+    
+    first = mux[1][0][session]
+    second = mux[2][session]
+    third = mux[3][session]
+    
+    return [first,second,third], fn
 
 def get_spikes():
     num = 66
     fn = '20130610T170549'
-    tetrode = 1
-    session = 83
+    tetrode = 5
+    session = 70
     
+    [first, second, third], fn = load_mux(num, session)
+    import pdb; pdb.set_trace()
+    cnt = 0
+    for x in np.ravel(first):
+        stack = [x]
+        while len(stack) != 0:
+            x = stack.pop()
+            print x
+            if type(x) == type():
+                print 'THE SAME'
+            try:
+                if type(x) != type(np.ndarray([])):
+                    print x
+                    print type(x)
+                    cnt += 1
+                    continue
+                for i in range(len(x)):
+                    stack.append(x[i])
+            except:
+                print x
+                cnt += 1
+                
+    print cnt
     
+    'ex: fn=20130818T191517.cmb'
     
     cl = load_cl(num,fn,tetrode)
     vl = load_vl(num,fn)
-    mux = load_mux(num, session)
+    
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     get_spikes()

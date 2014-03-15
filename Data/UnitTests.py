@@ -5,14 +5,15 @@ Created on Mar 15, 2014
 '''
 
 import unittest
-from readData import load_cl, load_vl
+from readData import load_cl, load_vl, load_mux
 
 class FooTests(unittest.TestCase):
 
     def testDataLoad(self):
         num = 66
-        fn = '20130610T170549'
+        session = 70
         tetrode = 1
+        tmp, fn = load_mux(num,session)
         cl = load_cl(num,fn,tetrode)
         vl = load_vl(num,fn)
         self.failUnless(len(cl) == 3)
