@@ -3,26 +3,30 @@
 
 % FIRST, GO TO THE tetrodes DIRECTORY (on dropbox)
 
+target_clust = 2;
+wanted_sess = 60;
+
 % Load the file for rat 75 containing session information
 % This will load a variable called mux
-load 75.mat
+load 'Data/Data Files/66.mat'
 
 % Load the behavioral data for session 18:14:04 on day 10/25/2013
 % This will load a variable called virmenLog
-load virmenLog75\20131025T181404.cmb.mat
+load 'Data/Data Files/VirmenLog/virmenLog66/20130807T092901.cmb.mat'
 
 % Load spike information from tetrode #2
 % This will load a variable called clust
-load clusters75\20131025T181404.cmb.2.mat
+load 'Data/Data Files/Clusters/clusters66/20130807T092901.cmb.4.mat'
 
 % Locate the session we're interested in. In this case it's #83
-mux.sessions(83).name
+mux.sessions(wanted_sess).name
 
+format long;
 % Determine the timestamp at which the recording was started
-startTime = datenum(mux.sessions(83).info.ObjInfo.InitialTriggerTime);
+startTime = datenum(mux.sessions(wanted_sess).info.ObjInfo.InitialTriggerTime)
 
 % Find all spikes belonging to neuron #3
-s = clust.times(clust.identity==3);
+s = clust.times(clust.identity==target_clust);
 
 % Convert spike time to units of days (here, 31250 samples/sec is the
 % sample rat ad 24*60*60 is the number of seconds per day)
@@ -34,6 +38,10 @@ s = s+startTime;
 % Find the timestamps of behavioral data points using iterations
 f = find(~isnan(virmenLog.iterations.number));
 y = round(interp1(f,virmenLog.iterations.number(f),1:length(virmenLog.iterations.number)));
+
+dlmwrite('y tester', y)
+
+
 
 % Determine the iteration number at which each spike occured
 sit = zeros(size(s));
@@ -66,5 +74,9 @@ end
 plot(virmenLog.position(1,:),virmenLog.position(2,:),'k')
 hold on
 
+length(sit)
+
 % Plot the spikes on top of the trajectory
 plot(virmenLog.position(1,sit),virmenLog.position(2,sit),'r.')
+
+dlmwrite('Animal 66, Session 60, Tetrode 4, Cluster 2.validation', sit)

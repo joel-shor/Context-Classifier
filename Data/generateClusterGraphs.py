@@ -38,7 +38,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     
     animal = 66
-    session = 59 # This is August 7, 2013 run
+    session = 60 # This is August 7, 2013 run
 
     
     # Filenames (fn) are named descriptively:
@@ -47,13 +47,13 @@ if __name__ == '__main__':
     
     for tetrode in range(1,17):
         clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
-        fn, trigger_dt, _ = load_mux(animal, session)
+        fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
         vl = load_vl(animal,fn)
     
         spk_is = []
         for wanted_cl in range(2,100):
-            spk_i = spike_loc(cl, vl, trigger_dt, wanted_cl)
+            spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
             if spk_i is np.NAN: break
             spk_is.append(spk_i)
 
@@ -66,6 +66,6 @@ if __name__ == '__main__':
             plot_spks(vl, spk_i, i+2)
         plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
         #plt.show()
-        plt.savefig('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+        plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
     
     

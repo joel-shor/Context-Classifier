@@ -18,7 +18,7 @@ cl_rate = 31250.0
 dat_base = dirname(abspath(__file__))
 
 
-def load_cl(num, fn, tetrode):
+def load_cl(animal, fn, tetrode):
     ''' Returns the date as a datetime, a list of index numbers, and
         a list of classifications.
     
@@ -29,7 +29,7 @@ def load_cl(num, fn, tetrode):
         ie [[1],[2],[3],...], [[1],[4],[3.4],...]
         the lengths are the same
      '''
-    clpath = join(dat_base,'Data Files','Clusters','clusters%s'%(num,),fn)
+    clpath = join(dat_base,'Data Files','Clusters','clusters%s'%(animal,),fn)
     tmp = loadmat(clpath+'.cmb.%i.mat'%(tetrode,))
     dt = datetime.strptime(tmp['__header__'][50:],'%a %b %d %H:%M:%S %Y')
     
@@ -40,7 +40,7 @@ def load_cl(num, fn, tetrode):
 
 
 
-def load_vl(num, fn):
+def load_vl(animal, fn):
     ''' Returns a list with :
             0) the current datetime
             1) a list of 'nows'
@@ -67,7 +67,7 @@ def load_vl(num, fn):
           tmp['virmenLog'][0,0][-1][0,0][1]: 1x54561 ndarray
 
     '''
-    vlpath = join(dat_base,'Data Files','VirmenLog','virmenLog%s'%(num,),fn)
+    vlpath = join(dat_base,'Data Files','VirmenLog','virmenLog%s'%(animal,),fn)
 
     tmp = loadmat(vlpath+'.cmb.mat')
     dt = datetime.strptime(tmp['__header__'][50:],'%a %b %d %H:%M:%S %Y')
@@ -100,7 +100,7 @@ def load_wv(path):
         '''
     return loadmat(path)['waveforms']
 
-def load_mux(num, session):
+def load_mux(animal, session):
     '''
     mux: np.void, len(mux) = 5
         [name of tetrode, 
@@ -131,9 +131,11 @@ def load_mux(num, session):
     mux[1][0,session][1][0,0][0][0,0][6][0,1][1][0,0][0]: np.void, len = 2
     '''
     
-    muxpath = join(dat_base,'Data Files', str(num))
+    session -= 1 # Session starts at 1, but array indices start at 0
+    muxpath = join(dat_base,'Data Files', str(animal))
     mux = loadmat(muxpath+'.mat')['mux'][0][0]
     
+    #import pdb; pdb.set_trace()
     # String the ending '.cmb'
     fn = mux[1][0][session][0][0].split('.')[0]
     
@@ -145,13 +147,21 @@ def load_mux(num, session):
                         minute=int(sr[0,4]),second=int(sr[0,5]),
                         microsecond=int( 10**6*(sr[0,5]-int(sr[0,5])) ) )
     
+    # Get the trigger time - although I don't know what this is
+    #  is used for
     tr = mux[1][0,session][1][0,0][0][0,0][6][0,1][1][0,0][0]
     trigger_dt = datetime(year=int(tr[0,0]), month=int(tr[0,1]),
                         day=int(tr[0,2]),hour=int(tr[0,3]),
                         minute=int(tr[0,4]),second=int(tr[0,5]),
                         microsecond=int( 1000*(tr[0,5]-int(tr[0,5])) ) )
     
-    return fn, trigger_dt, start_dt
+    # Get the BackupInitialTime - this is the thing that corresponds
+    #  to Matlab's mux.sessions(wanted_sess).info.ObjInfo.InitialTriggerTime
+    # It is already given in 
+    bt = mux[1][0,session][1][0,0][3][0,0][0][0,0]
+    
+    
+    return fn, bt
 
 def _datenum(dt):
     ''' Takes a python datetime.datetime and converts it to
