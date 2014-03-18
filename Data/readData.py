@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 from matplotlib import cm
 
 cl_rate = 31250.0
-clrs = ['b','g','r','c','m','k','y']
+#clrs = ['b','g','r','c','m','k']
 #clrs = ['b','g','r']
 dat_base = dirname(abspath(__file__))
 
@@ -161,86 +161,3 @@ def _datenum(dt):
     delt = dt-reference
     return delt.total_seconds()/(60.0*60*24) + 365 + 1 \
                 + 1 # Need an extra 1 to match Matlab's output...?
-
-def get_spikes(cl,vl, trigger_dt, wanted_cl):
-    
-    if wanted_cl == 1:
-        logging.warning('Are you SURE you want to plot cluster 1?')
-        import pdb; pdb.set_trace()
-    
-    # Get the times when a cluster in label 'wanted_cl' occurs
-    st = cl['Time'][cl['Label']==wanted_cl].astype(np.float)
-    if st.shape == (0,):
-        logging.warning('No clusters with label %i. Quitting...', wanted_cl)
-        raise Exception()
-    st /= (31250.0*24*60*60)
-    st += _datenum(trigger_dt)
-    
-    # Clean up the virmenLog iterations numbers by removing the
-    #  nan ones and linearly interpolating between them
-    f = np.nonzero(~np.isnan(vl['Iter num']))[0]
-    y = np.interp(range(len(vl['Iter num'])), f, vl['Iter num'][f])
-    #y = np.round(y,0).astype(int)
-    y = y.astype(int)
-    
-    
-    logging.info('%i pts in cluster %i',len(st),wanted_cl)
-    if 1.0*len(st)/len(cl['Label']) > .1:
-        logging.warning('Are you SURE you want to proceed?')
-        y = raw_input()
-        if y in ['n', 'N']:
-            return
-
-    # Determine the iteration number at which each spike occured
-    spk_i = np.zeros(st.shape)
-    for ndx in range(len(st)):
-        try:
-            # Find iteration preceeding spike
-            f = np.nonzero(vl['Iter time'] < st[ndx])[0][-1] # Take the last one
-            
-            # Make sure there is an iteration following the spike
-            np.nonzero(vl['Iter time'] > st[ndx])[0][0]
-            
-            spk_i[ndx] = y[f]
-        except:
-            # If nonzero is empty, the spike occurred before the first
-            #  or after the last spike
-            spk_i[ndx] = np.NAN
-    
-    # Delete NaN values
-    spk_i = spk_i[~np.isnan(spk_i)].astype(int)
-    
-    # Determine speed
-    speed = np.sqrt(vl['vxs']**2+vl['vys']**2)
-    
-    # Only leave spikes when rat is running faster than 2 in /sec
-    spk_i = np.intersect1d(spk_i, np.nonzero(speed > 2)[0])
-    
-    if clrs == []:
-        logging.warning('Ran out of colors!!')
-        raise Exception()
-    plt.scatter(vl['xs'][spk_i],vl['ys'][spk_i],zorder=2,color=clrs.pop())
-    
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    
-    animal = 66
-    tetrode = 5
-    session = 59 # This is August 7, 2013 run
-    
-    # Filenames (fn) are named descriptively:
-    # session 18:14:04 on day 10/25/2013
-    # load virmenLog75\20131025T181404.cmb.mat
-    fn, trigger_dt, _ = load_mux(animal, session)
-    cl = load_cl(animal,fn,tetrode)
-    vl = load_vl(animal,fn)
-
-    plt.plot(vl['xs'],vl['ys'],clrs.pop(),zorder=1)    
-    try:
-        for wanted_cl in range(2,15):
-            get_spikes(cl, vl, trigger_dt, wanted_cl)
-        raise Exception()
-    except:
-        plt.show()
-    
-    
