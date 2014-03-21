@@ -37,17 +37,13 @@ s = s+startTime;
 
 % Find the timestamps of behavioral data points using iterations
 f = find(~isnan(virmenLog.iterations.number));
-y = round(interp1(f,virmenLog.iterations.number(f),1:length(virmenLog.iterations.number)));
-
-dlmwrite('y tester', y)
-
-
+y = round(interp1(f,virmenLog.iterations.number(f),1:length(virmenLog.iterations.number)))
 
 % Determine the iteration number at which each spike occured
 sit = zeros(size(s));
 for ndx = 1:length(sit)
     % Find the iteration preceding the spike
-    f = find(virmenLog.iterations.time < s(ndx),1,'last');
+    f = find(virmenLog.iterations.time < s(ndx),1,'last')
     % Find the iteration following the spike
     g = find(virmenLog.iterations.time > s(ndx),1,'first');
     if ~isempty(f) && ~isempty(g)
@@ -59,8 +55,16 @@ end
 % Delete all spikes occuring before the first or after the last iteration
 sit(isnan(sit)) = [];
 
+dlmwrite('xs pre speed', virmenLog.position(1,sit))
+
 % Determine the animal's running speed
 speed = sqrt(sum(virmenLog.velocity.^2,1));
+
+dlmwrite('speed arr', speed)
+
+length(sit)
+
+speed(33467)
 
 % Leave only those spikes that occur when running is faster than 2 in/sec
 f = find(speed > 2);
@@ -79,4 +83,5 @@ length(sit)
 % Plot the spikes on top of the trajectory
 plot(virmenLog.position(1,sit),virmenLog.position(2,sit),'r.')
 
-dlmwrite('Animal 66, Session 60, Tetrode 4, Cluster 2.validation', sit)
+dlmwrite('Animal 66, Session 60, Tetrode 4, Cluster 2, xs.validation', virmenLog.position(1,sit))
+dlmwrite('Animal 66, Session 60, Tetrode 4, Cluster 2, ys.validation', virmenLog.position(2,sit))

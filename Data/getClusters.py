@@ -40,17 +40,21 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     
     # Clean up the virmenLog iterations numbers by removing the
     #  nan ones and linearly interpolating between them
+    # #NOTE: Python rounds to the nearest EVEN integer in the case
+    #  of ties, while Matlab does not. In order to check for consistency
+    #  between the two, I implement a method that simulates matlab rounding
+    #  behavior
+    def matround(a, decimals=0):
+        return np.round(a+10**(-(decimals+5)), decimals=decimals)
     f = np.nonzero(~np.isnan(vl['Iter num']))[0]
-    y = np.round(np.interp(range(len(vl['Iter num'])), f, vl['Iter num'][f]),0)
-    #y = np.round(y,0).astype(int)
+    y = matround(np.interp(range(len(vl['Iter num'])), f, vl['Iter num'][f]),0)
     y = y.astype(int)
     
+    # Iterations are Matlab indices, so they begin at 1
+    #  Adjust them to fit Python
+    y -= 1
     
-    with open('y tester')
-    
-    print y
-    import pdb; pdb.set_trace()
-    
+    # Ask user if he wants to waste time on an excessively large dataset
     logging.info('%i pts in cluster %i',len(st),target_cl)
     if 1.0*len(st)/len(cl['Label']) > .05:
         logging.warning('Are you SURE you want to proceed?')
@@ -58,13 +62,12 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
         if y in ['n', 'N']:
             return np.NAN
 
-    # Determine the iteration number at which each spike occured
+    # Determine the iteration number at which each spike occurred
     spk_i = np.zeros(st.shape)
     for ndx in range(len(st)):
         try:
             # Find iteration preceeding spike
             f = np.nonzero(vl['Iter time'] < st[ndx])[0][-1] # Take the last one
-            
             # Make sure there is an iteration following the spike
             np.nonzero(vl['Iter time'] > st[ndx])[0][0]
             
@@ -76,14 +79,23 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     
     # Delete NaN values
     spk_i = spk_i[~np.isnan(spk_i)].astype(int)
+
     
     # Determine speed
-    speed = np.sqrt(vl['vxs']**2+vl['vys']**2)
+    # Matlab rounds speed to 6 or 7 decimals, so do the same for consistency
+    speed = matround(np.sqrt(vl['vxs']**2+vl['vys']**2),decimals=6)[spk_i]
+    
+    
+    #with open('speed arr','r') as fn:
+    #    speed_mat = np.array([float(x) for x in fn.readlines()[0].replace('\n','').split(',')])
+    
+    #import pdb; pdb.set_trace()
     
     # Only leave spikes when rat is running faster than 2 in /sec
-    spk_i = np.intersect1d(spk_i, np.nonzero(speed > 2)[0])
+    spk_i2 = spk_i[np.nonzero(speed > 2)[0]]
 
-    return spk_i
+    #import pdb; pdb.set_trace()
+    return spk_i2
 
 
 if __name__ == '__main__':
