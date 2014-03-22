@@ -65,7 +65,7 @@ if __name__ == '__main__':
             plt.subplot(subp_x,subp_y, i+1)
             plot_spks(vl, spk_i, i+2)
         plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        #plt.show()
-        plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+        plt.show()
+        #plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
     
     
