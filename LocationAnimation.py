@@ -51,8 +51,8 @@ if __name__ == '__main__':
     
     #physical = rand_walk(step_num=1000,step_size=.05)
     HMM = None
-    top = MainWin(vl, room_shape, wv, wv_iters)
+    top = MainWin(vl, room_shape, wv, cl, wv_iters)
     top.add_predictor(HMM)
-    gobj.timeout_add(40,top.update)
+    gobj.timeout_add(2,top.update)
     gtk.main()
     

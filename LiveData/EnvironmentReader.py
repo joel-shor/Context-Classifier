@@ -14,7 +14,7 @@ from Reader import Reader
 
 class EnvironmentReader(Reader):
     def __init__(self, vl, room_shape, start_iter):
-        super(EnvironmentReader,self).__init__(win_size=700,
+        super(EnvironmentReader,self).__init__(win_size=[700,700],
                                                win_loc=pos,
                                                title='Environment')
         self.vl = vl

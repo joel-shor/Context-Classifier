@@ -3,10 +3,10 @@ from LiveData.EnvironmentReader import EnvironmentReader
 
 class MainWin:
     ''' Object which updates the environment and waveform windows. '''
-    def __init__(self, vl, room_shape, wv, wv_iters):
+    def __init__(self, vl, room_shape, wv, cl, wv_iters):
         start_iter = min(vl['Iter num'])
         self.ER = EnvironmentReader(vl, room_shape,start_iter)
-        self.WR = WaveformReader(wv,wv_iters,start_iter)
+        self.WR = WaveformReader(wv,cl,wv_iters,start_iter)
         self.iter_num = 0
     
     def add_predictor(self, predictor):
