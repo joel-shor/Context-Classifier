@@ -5,79 +5,30 @@ except:
     raise Exception()
 import gtk
 
-import matplotlib
-matplotlib.use('GTKAgg')
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtkagg import FigureCanvasGTKAgg as FigureCanvas
 
-from matplotlib.patches import FancyArrowPatch as Arrow
-from matplotlib.patches import Circle, Rectangle
-
-from LiveData.WaveformReader import WaveformReader
-from LiveData.EnvironmentReader import EnvironmentReader
+from LiveData.AnimationWindow import MainWin as MainWin
 
 import gobject as gobj
-import numpy as np
 import logging
 
-class MainWin:
-    ''' Object which updates the environment and waveform windows. '''
-    def __init__(self, ER, WR, top_env,canvas_env,ax_env, top_wfr, canvas_wfr, ax_wfr):
-        self.ER = EnvironmentReader()
-        self.WR = WaveformReader()
-    
-    def add_predictor(self, predictor):
-        self.HMM = predictor
-    
-    def _make_prediction(self, actual_is_clockwise):
-        ''' This is going to cheat and look into the future. '''
-        cnt = self.ER.count
-        
-        prediction = self.HMM.predictions[cnt]
-        
-        if prediction == -1:
-            self.predicted_counter.set_text('None')
-        elif prediction == 1:
-            self.predicted_counter.set_text('Clockwise')
-        elif prediction == 0:
-            self.predicted_counter.set_text('Counterclockwise')
-        else:
-            raise Exception
-        if prediction == actual_is_clockwise:
-            self.predicted_counter.set_color('g')
-        else:
-            self.predicted_counter.set_color('r')
-    
-    def update(self):
-        #self.txt.set_text(self.count)
-        
-        x,y,vx,vy = self.ER.read()
-        #context = is_clockwise(x,y,vx,vy)
-        signal = self.WR.read(x,y)
-        
-        self.ER.draw(x,y,vx,vy, signal)
-        self.WR.draw(self.count, signal)
-        
-        self.count += 1
-        
-        return True
 
-from EnvironmentReader import  EnvironmentReader as EnvR
-from WaveformReader import WaveformReader as WvR
-from Data.readData import load_mux, load_vl
+from Data.readData import load_mux, load_vl, load_wv, load_cl
+from Data.matchClToVl import match_cl_to_vl
 from HMM.PiecewiseHMM import PiecewiseHMM
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     
+    room_shape = [[-50,50],[-50,50]]
     animal = 66
     session = 60 # This is August 7, 2013 run
+    tetrode=1
+    
+    
     fn, trigger_tm = load_mux(animal, session)
     vl = load_vl(animal,fn)
-
-    room_shape = [100,100]
-
-    ER = EnvR(vl, room_shape)
-    WR = WvR()
+    cl = load_cl(animal,fn,tetrode)
+    wv = load_wv(animal,fn,tetrode)
+    wv_iters = match_cl_to_vl(cl['Time'],vl, trigger_tm)
     
     #WAVE_L = WR.read(vl[2],vl[3], is_clockwise(*vl[2:6]))
     #actual_prediction = np.array([is_clockwise(x,y,vx,vy) for 
@@ -100,8 +51,8 @@ if __name__ == '__main__':
     
     #physical = rand_walk(step_num=1000,step_size=.05)
     HMM = None
-    top = MainWin()
+    top = MainWin(vl, room_shape, wv, wv_iters)
     top.add_predictor(HMM)
-    gobj.timeout_add(40,top.update)
+    gobj.timeout_add(5,top.update)
     gtk.main()
     

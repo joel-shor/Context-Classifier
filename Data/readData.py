@@ -4,17 +4,12 @@ Created on Nov 10, 2013
 @author: jshor
 '''
 from scipy.io import loadmat
-from os.path import join, basename, dirname, abspath
-from os import listdir
+from os.path import join, dirname, abspath
 import numpy as np
 from datetime import datetime
-import logging
-from matplotlib import pyplot as plt
-from matplotlib import cm
+from matlabRound import matround
 
 cl_rate = 31250.0
-#clrs = ['b','g','r','c','m','k']
-#clrs = ['b','g','r']
 dat_base = dirname(abspath(__file__))
 
 
@@ -80,6 +75,12 @@ def load_vl(animal, fn):
     iteration_time = np.ravel(tmp['virmenLog'][0,0][-1][0,0][0])
     iteration_num = np.ravel(tmp['virmenLog'][0,0][-1][0,0][1])
     
+    # Clean up the virmenLog iterations numbers by removing the
+    #  nan ones and linearly interpolating between them
+    f = np.nonzero(~np.isnan(iteration_num))[0]
+    iteration_num = matround(np.interp(range(len(iteration_num)), f, iteration_num[f]),0)
+    iteration_num = iteration_num.astype(int)
+    
     return {'Datetime': dt,
             'Time': nows, 
             'xs': xs, 
@@ -89,16 +90,15 @@ def load_vl(animal, fn):
             'Iter time': iteration_time,
             'Iter num': iteration_num}
  
-def load_wv(path):
+def load_wv(animal, fn, tetrode):
     ''' A waveform file is a list of 4 data points corresponding to
         the 4 electrode recordings of the tetrode at a given time.
         
-        [[1,2,3,4],
-         [4,5,6,6],
-         ...
+        returns an Xx4 ndarray
         ]
         '''
-    return loadmat(path)['waveforms']
+    clpath = join(dat_base,'Data Files','Waveforms','waveforms%s'%(animal,),fn)
+    return loadmat(clpath+'.cmb.%i.mat'%(tetrode,))['waveforms']
 
 def load_mux(animal, session):
     '''

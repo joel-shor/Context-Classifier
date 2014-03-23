@@ -5,7 +5,7 @@ Created on Mar 15, 2014
 '''
 
 import unittest
-from readData import load_cl, load_vl, load_mux, _datenum
+from readData import load_cl, load_vl, load_wv, load_mux, _datenum
 from datetime import datetime
 from getClusters import spike_loc
 import numpy as np
@@ -14,14 +14,16 @@ class DataTests(unittest.TestCase):
 
     def testDataLoad(self):
         num = 66
-        session = 70
+        session = 60
         tetrode = 1
         
         fn, trigger_tm = load_mux(num,session)
         cl = load_cl(num,fn,tetrode)
         vl = load_vl(num,fn)
+        wv = load_wv(num,fn,tetrode)
         self.failUnless(len(cl) == 3)
         self.failUnless(len(vl) == 8)
+        self.failUnless(wv.shape[1] == 4)
 
     def testDateNum(self):
         tmp = datetime(year=1998,month=2,day=4,minute=5)

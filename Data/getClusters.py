@@ -6,8 +6,8 @@ Created on Nov 10, 2013
 import numpy as np
 from datetime import datetime
 import logging
-
-cl_rate = 31250.0
+from matchClToVl import match_cl_to_vl
+from matlabRound import matround
 
 def _datenum(dt):
     ''' Takes a python datetime.datetime and converts it to
@@ -30,29 +30,11 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
             return np.NAN
     
     # Get the times when a cluster in label 'target_cl' occurs
-    st = cl['Time'][cl['Label']==target_cl].astype(np.float64)
+    # If target_cl is None, then find the iterations for everything
+    st = cl['Time'][cl['Label']==target_cl]
     if st.shape == (0,):
         logging.warning('No clusters with label %i. Quitting...', target_cl)
         return np.NAN
-    
-    st /= (cl_rate*24*60*60)
-    st += trigger_tm
-    
-    # Clean up the virmenLog iterations numbers by removing the
-    #  nan ones and linearly interpolating between them
-    # #NOTE: Python rounds to the nearest EVEN integer in the case
-    #  of ties, while Matlab does not. In order to check for consistency
-    #  between the two, I implement a method that simulates matlab rounding
-    #  behavior
-    def matround(a, decimals=0):
-        return np.round(a+10**(-(decimals+5)), decimals=decimals)
-    f = np.nonzero(~np.isnan(vl['Iter num']))[0]
-    y = matround(np.interp(range(len(vl['Iter num'])), f, vl['Iter num'][f]),0)
-    y = y.astype(int)
-    
-    # Iterations are Matlab indices, so they begin at 1
-    #  Adjust them to fit Python
-    y -= 1
     
     # Ask user if he wants to waste time on an excessively large dataset
     logging.info('%i pts in cluster %i',len(st),target_cl)
@@ -61,41 +43,23 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
         y = raw_input()
         if y in ['n', 'N']:
             return np.NAN
-
-    # Determine the iteration number at which each spike occurred
-    spk_i = np.zeros(st.shape)
-    for ndx in range(len(st)):
-        try:
-            # Find iteration preceeding spike
-            f = np.nonzero(vl['Iter time'] < st[ndx])[0][-1] # Take the last one
-            # Make sure there is an iteration following the spike
-            np.nonzero(vl['Iter time'] > st[ndx])[0][0]
-            
-            spk_i[ndx] = y[f]
-        except:
-            # If nonzero is empty, the spike occurred before the first
-            #  or after the last spike
-            spk_i[ndx] = np.NAN
+    
+    # Get the vl indices corresponding to times in st
+    spk_i = np.array(list(match_cl_to_vl(st, vl, trigger_tm)))
+    
+    #import pdb; pdb.set_trace()
     
     # Delete NaN values
     spk_i = spk_i[~np.isnan(spk_i)].astype(int)
-
     
     # Determine speed
     # Matlab rounds speed to 6 or 7 decimals, so do the same for consistency
     speed = matround(np.sqrt(vl['vxs']**2+vl['vys']**2),decimals=6)[spk_i]
     
-    
-    #with open('speed arr','r') as fn:
-    #    speed_mat = np.array([float(x) for x in fn.readlines()[0].replace('\n','').split(',')])
-    
-    #import pdb; pdb.set_trace()
-    
     # Only leave spikes when rat is running faster than 2 in /sec
-    spk_i2 = spk_i[np.nonzero(speed > 2)[0]]
+    spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
-    #import pdb; pdb.set_trace()
-    return spk_i2
+    return spk_i
 
 
 if __name__ == '__main__':

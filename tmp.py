@@ -1,5 +1,19 @@
 
 
+
+import itertools
+
+def f():
+    for i in range(10000):
+        yield i
+for i in f()[1:10]:
+    print i
+print f()
+print itertools.islice(f(),0,5)
+print itertools.islice(f(),0,5)
+import sys; sys.exit()
+
+
 import datetime
 import numpy as np
 import pylab as pl
@@ -40,7 +54,7 @@ X = np.column_stack([diff, volume])
 
 ###############################################################################
 # Run Gaussian HMM
-print("fitting to HMM and decoding ...", end='')
+print "fitting to HMM and decoding ..."
 n_components = 5
 
 # make an HMM instance and execute fit
