@@ -33,16 +33,21 @@ class Reader(object):
         self.top.add(self.canvas)
         self.top.show_all()
         
-        self.backgrounds = [self.update_background(ax) for ax in
-                            self.axs]
+        self.update_background()
+        
         if len(self.axs) == 1:
             self.ax = self.axs[0]
+            
+        
+    def update_background(self):
+        self.canvas.draw()
+        self.backgrounds = [self.canvas.copy_from_bbox(ax.bbox) for
+                            ax in self.axs]
+        if len(self.backgrounds) == 1: 
             self.background = self.backgrounds[0]
             
         
-    def update_background(self,ax):
-        self.canvas.draw()
-        return self.canvas.copy_from_bbox(ax.bbox)
+        return 
     
     def draw(self):
         raise Exception('Not implemented.')

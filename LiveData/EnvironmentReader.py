@@ -18,8 +18,9 @@ class EnvironmentReader(Reader):
                                                win_loc=pos,
                                                title='Environment')
         self.vl = vl
-        self.cur_i = 0
         self.cur_iter = start_iter
+        
+        self.cur_i = 0
         self.max_iter = np.max(vl['Iter num'])
         self.maxx = room_shape[0][1]
         self.maxy = room_shape[1][1]
@@ -55,7 +56,7 @@ class EnvironmentReader(Reader):
         
         self.canvas.draw()
         
-    def read(self):
+    def read(self, iteration=None):
         ''' Return the environment data corresponding to
             the next iteration.
             
@@ -64,7 +65,9 @@ class EnvironmentReader(Reader):
             
             All of the environment data before self.cur_i
             has already been recorded.'''
+        if iteration is not None: self.cur_iter = iteration
         try:
+            
             cur_j = 1+self.cur_i+ np.nonzero(self.vl['Iter num'][self.cur_i:] == self.cur_iter)[0][-1]
         except:
             # There is no iteration with that value

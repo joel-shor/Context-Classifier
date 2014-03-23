@@ -11,17 +11,18 @@ from LiveData.AnimationWindow import MainWin as MainWin
 import gobject as gobj
 import logging
 
-
 from Data.readData import load_mux, load_vl, load_wv, load_cl
 from Data.matchClToVl import match_cl_to_vl
 from HMM.PiecewiseHMM import PiecewiseHMM
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     
-    room_shape = [[-50,50],[-50,50]]
+    room_shape = [[-60,60],[-60,60]]
     animal = 66
     session = 60 # This is August 7, 2013 run
-    tetrode=1
+    tetrode=3
     
     
     fn, trigger_tm = load_mux(animal, session)
@@ -51,8 +52,10 @@ if __name__ == '__main__':
     
     #physical = rand_walk(step_num=1000,step_size=.05)
     HMM = None
-    top = MainWin(vl, room_shape, wv, cl, wv_iters)
+    top = MainWin()
+    top.init_ER(vl, room_shape)
+    top.init_WR(wv, cl, wv_iters)
     top.add_predictor(HMM)
-    gobj.timeout_add(2,top.update)
+    gobj.timeout_add(5,top.update)
     gtk.main()
     

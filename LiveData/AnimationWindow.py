@@ -3,12 +3,20 @@ from LiveData.EnvironmentReader import EnvironmentReader
 
 class MainWin:
     ''' Object which updates the environment and waveform windows. '''
-    def __init__(self, vl, room_shape, wv, cl, wv_iters):
-        start_iter = min(vl['Iter num'])
-        self.ER = EnvironmentReader(vl, room_shape,start_iter)
-        self.WR = WaveformReader(wv,cl,wv_iters,start_iter)
-        self.iter_num = 0
     
+    def __init__(self, step=10):
+        self.iter_num = 0
+        self.step = step
+        self.ER = None
+        self.WR = None
+    
+    def init_ER(self,vl, room_shape):
+        self.start_iter = min(vl['Iter num'])
+        self.ER = EnvironmentReader(vl, room_shape,self.start_iter)
+        
+    def init_WR(self, wv, cl, wv_iters):
+        self.WR = WaveformReader(wv,cl,wv_iters,self.start_iter)
+        
     def add_predictor(self, predictor):
         self.HMM = predictor
     
@@ -32,15 +40,13 @@ class MainWin:
             self.predicted_counter.set_color('r')
     
     def update(self):
-        #self.txt.set_text(self.iter_num)
         
-        xs,ys,vxs,vys = self.ER.read()
-        #context = is_clockwise(x,y,vx,vy)
-        signal = self.WR.read()
+        xs,ys,vxs,vys = self.ER.read(iteration=self.iter_num)
+        signal, spks = self.WR.read(iteration=self.iter_num)
         
         self.ER.draw(xs,ys,vxs,vys)
-        self.WR.draw(signal)
+        self.WR.draw(signal, spks)
         
-        self.iter_num += 1
+        self.iter_num += self.step
         
         return True

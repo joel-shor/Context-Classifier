@@ -5,10 +5,13 @@ Created on Mar 15, 2014
 '''
 
 import unittest
+import numpy as np
+
 from readData import load_cl, load_vl, load_wv, load_mux, _datenum
 from datetime import datetime
 from getClusters import spike_loc
-import numpy as np
+from classifyTask import classify_task, find_runs
+
 
 class DataTests(unittest.TestCase):
 
@@ -17,7 +20,7 @@ class DataTests(unittest.TestCase):
         session = 60
         tetrode = 1
         
-        fn, trigger_tm = load_mux(num,session)
+        fn, _ = load_mux(num,session)
         cl = load_cl(num,fn,tetrode)
         vl = load_vl(num,fn)
         wv = load_wv(num,fn,tetrode)
@@ -62,6 +65,29 @@ class DataTests(unittest.TestCase):
         
         # There is sometimes roundoff error
         self.failUnless(len(diff1)<5 and len(diff2)<5) 
+    
+    def testTaskClassification(self):
+        num = 66
+        session = 60
+        
+        fn, _= load_mux(num,session)
+        vl = load_vl(num,fn)
+        
+        task = classify_task(vl, 0, 0)
+        
+        self.failUnless(len(task) == len(vl['xs']))
+        
+        acceptable_labels = [0,1]
+        
+        correct_lbl = 0
+        for label in acceptable_labels:
+            correct_lbl += len(np.nonzero(task==label)[0])
+        self.failUnless(correct_lbl == len(task)) 
+        
+        sgn, run_len = find_runs(task)
+        
+        self.failUnless(len(sgn) == len(run_len))
+        self.failUnless(np.sum(run_len)==len(task))
         
 def main():
     unittest.main()
