@@ -53,6 +53,6 @@ if __name__ == '__main__':
     HMM = None
     top = MainWin(vl, room_shape, wv, wv_iters)
     top.add_predictor(HMM)
-    gobj.timeout_add(5,top.update)
+    gobj.timeout_add(40,top.update)
     gtk.main()
     

@@ -13,13 +13,13 @@ import numpy as np
 from Reader import Reader
 
 class EnvironmentReader(Reader):
-    def __init__(self, vl, room_shape):
+    def __init__(self, vl, room_shape, start_iter):
         super(EnvironmentReader,self).__init__(win_size=700,
                                                win_loc=pos,
                                                title='Environment')
         self.vl = vl
         self.cur_i = 0
-        self.cur_iter = np.min(vl['Iter num'])
+        self.cur_iter = start_iter
         self.max_iter = np.max(vl['Iter num'])
         self.maxx = room_shape[0][1]
         self.maxy = room_shape[1][1]
@@ -64,7 +64,6 @@ class EnvironmentReader(Reader):
             
             All of the environment data before self.cur_i
             has already been recorded.'''
-
         try:
             cur_j = 1+self.cur_i+ np.nonzero(self.vl['Iter num'][self.cur_i:] == self.cur_iter)[0][-1]
         except:
