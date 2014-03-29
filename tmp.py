@@ -1,106 +1,77 @@
+from Data.readData import load_mux, load_wv
+from matplotlib import pyplot as plt
+from pygasp.fft import fftFilters
+from scipy.fftpack import fft, ifft
 
-
-
-import itertools
-
-def f():
-    for i in range(10000):
-        yield i
-for i in f()[1:10]:
-    print i
-print f()
-print itertools.islice(f(),0,5)
-print itertools.islice(f(),0,5)
-import sys; sys.exit()
-
-
-import datetime
 import numpy as np
-import pylab as pl
-from matplotlib.finance import quotes_historical_yahoo
-from matplotlib.dates import YearLocator, MonthLocator, DateFormatter
-from sklearn.hmm import GaussianHMM
-from sys import exit
 
+#freq = 31250.0
+freq=100.0
 
-print(__doc__)
+def bandfilt(wv):
+    ft = fft(wv)
+    #plt.plot(np.absolute(ft))
+    #plt.show()
+    fftFilters.bandpass(ft,samplingFreq=freq,cutoffLow=4,cutoffHigh=11)
+    #plt.plot(np.absolute(ft))
+    #plt.show()
+    wv = ifft(ft)
+    return wv
 
-print 'test%-40.3f'%(2.0,)
-exit()
+def fourierfilt(wv):
+    ft = fft(wv)
+    start = 4.0*len(wv)/100
+    stop = 11.0*len(wv)/100
 
-###############################################################################
-# Downloading the data
-date1 = datetime.date(1995, 1, 1)  # start date
-date2 = datetime.date(2012, 1, 6)  # end date
-# get quotes from yahoo finance
-quotes = quotes_historical_yahoo("INTC", date1, date2)
-if len(quotes) == 0:
-    raise SystemExit
+    tmper = np.copy(ft)
+    plt.plot(tmper)
+    plt.show()
 
-# unpack quotes
-dates = np.array([q[0] for q in quotes], dtype=int)
-close_v = np.array([q[2] for q in quotes])
-volume = np.array([q[5] for q in quotes])[1:]
+    ft = np.concatenate([np.zeros(start),ft[start:stop],np.zeros(len(wv)/2-stop)])
+    import pdb; pdb.set_trace()
+    ft = np.concatenate([ft,ft[::-1]-2*np.imag(ft[::-1])])
 
-# take diff of close value
-# this makes len(diff) = len(close_t) - 1
-# therefore, others quantity also need to be shifted
-diff = close_v[1:] - close_v[:-1]
-dates = dates[1:]
-close_v = close_v[1:]
+    plt.figure()
+    plt.plot(tmper-ft)
+    plt.plot(ft)
+    
+    plt.show()
 
-# pack diff and volume for training
-X = np.column_stack([diff, volume])
+    wv = ifft(ft)
+    return np.real(wv)
 
-###############################################################################
-# Run Gaussian HMM
-print "fitting to HMM and decoding ..."
-n_components = 5
+def tmp():
+    x = np.arange(0,100,1/freq)
+    wv1 = np.cos(2*np.pi*x) # Freq = 1
+    wv2 = np.cos(2*np.pi*x*7.0) # Freq = 7
+    wv = wv1+wv2
+    #wv = wv1
+    
+    
+    plt.plot(x,wv1)
+    
+    out = np.real(bandfilt(wv))
+    plt.plot(x,out,label='filtered')
+    print np.sum(out-wv1)
+    #plt.figure()
+    #plt.plot(x,fourierfilt(wv)) 
+    
+    plt.legend()
+    plt.show()
+    import sys; sys.exit()
 
-# make an HMM instance and execute fit
-model = GaussianHMM(n_components, covariance_type="diag", n_iter=1000)
-model.fit([X,X])
+tmp()
+num = 66
+session = 60
+tetrode = 1
 
-# predict the optimal sequence of internal hidden state
-hidden_states = model.predict(X)
+fn, _ = load_mux(num,session)
+wv = load_wv(num,fn,tetrode)
 
-print("done\n")
-
-###############################################################################
-# print trained parameters and plot
-print("Transition matrix")
-print(model.transmat_)
-print()
-
-print("means and vars of each hidden state")
-for i in range(n_components):
-    print("%dth hidden state" % i)
-    print("mean = ", model.means_[i])
-    print("var = ", np.diag(model.covars_[i]))
-    print()
-
-years = YearLocator()   # every year
-months = MonthLocator()  # every month
-yearsFmt = DateFormatter('%Y')
-fig = pl.figure()
-ax = fig.add_subplot(111)
-
-for i in range(n_components):
-    # use fancy indexing to plot data in each state
-    idx = (hidden_states == i)
-    ax.plot_date(dates[idx], close_v[idx], 'o', label="%dth hidden state" % i)
-ax.legend()
-
-# format the ticks
-ax.xaxis.set_major_locator(years)
-ax.xaxis.set_major_formatter(yearsFmt)
-ax.xaxis.set_minor_locator(months)
-ax.autoscale_view()
-
-# format the coords message box
-ax.fmt_xdata = DateFormatter('%Y-%m-%d')
-ax.fmt_ydata = lambda x: '$%1.2f' % x
-ax.grid(True)
-
-fig.autofmt_xdate()
-pl.show()
+for i in range(wv.shape[1]):
+    plt.figure()
+    plt.plot(wv[:,1])
+    shower = np.absolute(bandfilt(wv[:,i]))
+    plt.figure()
+    plt.plot(shower)
+    plt.show()
