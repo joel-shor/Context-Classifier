@@ -4,24 +4,15 @@ Created on Nov 10, 2013
 @author: jshor
 '''
 import numpy as np
-from datetime import datetime
 import logging
 from matchClToVl import match_cl_to_vl
 from matlabRound import matround
 
-def _datenum(dt):
-    ''' Takes a python datetime.datetime and converts it to
-        a Matlab serial date number ie the number of (fractional)
-        days since January 0,0000 
-        
-        No longer needed since initial trigger time is stored
-        as a Matlab serial date number'''
-    reference = datetime(year=1,month=1,day=1)
-    delt = dt-reference
-    return delt.total_seconds()/(60.0*60*24) + 365 + 1 \
-                + 1 # Need an extra 1 to match Matlab's output...?
 
 def spike_loc(cl, vl, trigger_tm, target_cl):
+    ''' Return the indices of vl['xs'] and vl['ys']
+        that correspond to spikes with cluster label
+        target_cl '''
     
     if target_cl == 1:
         logging.warning('Are you SURE you want to find cluster 1?')

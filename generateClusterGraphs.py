@@ -3,11 +3,11 @@ Created on Nov 10, 2013
 
 @author: jshor
 '''
-from readData import load_cl, load_wv, load_mux, load_vl
+from Data.readData import load_cl, load_mux, load_vl
 import numpy as np
 import logging
 from matplotlib import pyplot as plt
-from getClusters import spike_loc
+from Data.getClusters import spike_loc
 
 def get_subplot_size(gs):
     sqr = int(np.ceil(np.sqrt(gs)))

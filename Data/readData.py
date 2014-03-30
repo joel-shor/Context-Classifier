@@ -9,7 +9,6 @@ import numpy as np
 from datetime import datetime
 from matlabRound import matround
 
-cl_rate = 31250.0
 dat_base = dirname(abspath(__file__))
 
 
@@ -166,7 +165,10 @@ def load_mux(animal, session):
 def _datenum(dt):
     ''' Takes a python datetime.datetime and converts it to
         a Matlab serial date number ie the number of (fractional)
-        days since January 0,0000 '''
+        days since January 0,0000 
+        
+        No longer needed since initial trigger time is stored
+        as a Matlab serial date number'''
     reference = datetime(year=1,month=1,day=1)
     delt = dt-reference
     return delt.total_seconds()/(60.0*60*24) + 365 + 1 \

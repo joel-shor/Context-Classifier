@@ -6,6 +6,8 @@ Created on Mar 23, 2014
 import numpy as np
 
 def classify_task(vl, cntrx, cntry):
+    ''' Returns an array classifying which task the rat
+        is performing based on environment data. '''
     x = vl['xs']
     y = vl['ys']
     vx = vl['vxs']
