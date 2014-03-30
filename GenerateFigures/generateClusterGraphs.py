@@ -9,6 +9,8 @@ import logging
 from matplotlib import pyplot as plt
 from Data.getClusters import spike_loc
 
+clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
+
 def get_subplot_size(gs):
     sqr = int(np.ceil(np.sqrt(gs)))
     return sqr, sqr
@@ -34,9 +36,7 @@ def plot_spks(vl, spk_i, wanted_cl):
             top='off',         # ticks along the top edge are off
             labelleft='off') # labels along the bottom edge are off
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    
+def generate_cluster_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
 
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # load virmenLog75\20131025T181404.cmb.mat
     
     for tetrode in range(1,17):
-        clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
+        
         fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
         vl = load_vl(animal,fn)
@@ -68,4 +68,8 @@ if __name__ == '__main__':
         plt.show()
         #plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
     
+    
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    generateClusterGraphs()
     

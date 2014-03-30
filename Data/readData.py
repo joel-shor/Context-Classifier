@@ -7,7 +7,7 @@ from scipy.io import loadmat
 from os.path import join, dirname, abspath
 import numpy as np
 from datetime import datetime
-from matlabRound import matround
+from Analysis.matlabRound import matround
 
 dat_base = dirname(abspath(__file__))
 

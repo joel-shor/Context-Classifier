@@ -9,8 +9,10 @@ import numpy as np
 
 from Data.readData import load_cl, load_vl, load_wv, load_mux, _datenum
 from datetime import datetime
-from Data.getClusters import spike_loc
-from Data.classifyTask import classify_task, find_runs
+from Data.Analysis.getClusters import spike_loc
+from Data.Analysis.classifyTask import classify_task, find_runs
+from Data.Analysis.filter import bandfilt
+
 from os.path import join
 
 class DataTests(unittest.TestCase):
@@ -32,7 +34,8 @@ class DataTests(unittest.TestCase):
         tmp = datetime(year=1998,month=2,day=4,minute=5)
         dn = _datenum(tmp)
         self.failUnless(dn - 729790.003472222 < 10**-9)
-        
+
+class AnalysisTests(unittest.TestCase):   
     def testSpikeLoc(self):
         validation_txt_fn_x = 'Animal 66, Session 60, Tetrode 4, Cluster 2, xs.validation'
         validation_txt_fn_y = 'Animal 66, Session 60, Tetrode 4, Cluster 2, ys.validation'
@@ -90,10 +93,6 @@ class DataTests(unittest.TestCase):
         
         self.failUnless(len(sgn) == len(run_len))
         self.failUnless(np.sum(run_len)==len(task))
-
-
-from SignalProcessing.filter import bandfilt
-class SignalProcessingTests(unittest.TestCase):
 
     def testBandpassFilter(self):
         freq = 1000

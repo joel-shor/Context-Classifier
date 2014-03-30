@@ -53,6 +53,12 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     return spk_i
 
 
+    plt.figure()
+    
+def spike_rate(room_shape, vl, spk_i):
+    cmapping = cmapping=get_cmap('Reds')
+    cntr = plt.contourf(Xs,Ys,Zs,cmap=cmapping)
+
 if __name__ == '__main__':
     animal = 66
     session = 60 # This is August 7, 2013 run
