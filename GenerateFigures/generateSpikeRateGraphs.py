@@ -3,11 +3,14 @@ Created on Nov 10, 2013
 
 @author: jshor
 '''
-from Data.readData import load_cl, load_mux, load_vl
-import numpy as np
+import logging
+
+from Data.readData import load_mux, load_vl, load_cl
 from matplotlib import pyplot as plt
 from Data.Analysis.getClusters import spike_loc
+from Data.Analysis.spikeRate import spike_rate
 
+import numpy as np
 clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
 
 def get_subplot_size(gs):
@@ -18,10 +21,10 @@ def get_subplot_size(gs):
             return x, gs/x
     return sqr, int(np.ceil(1.0*gs/sqr))
 
-def plot_spks(vl, spk_i, wanted_cl):
-    plt.plot(vl['xs'],vl['ys'],zorder=1,color='y')
-    plt.scatter(vl['xs'][spk_i],vl['ys'][spk_i],zorder=2,color=clrs.pop())
-    plt.title('Cluster %i'%(wanted_cl,))
+def plot_rates(Xs, Ys, rates, cluster):
+    cntr = plt.contourf(Ys,Xs,rates)
+    plt.colorbar(cntr, extend='both')
+    plt.title('Cluster %i'%(cluster,))
     plt.tick_params(\
             axis='x',          # changes apply to the x-axis
             which='both',      # both major and minor ticks are affected
@@ -35,10 +38,15 @@ def plot_spks(vl, spk_i, wanted_cl):
             top='off',         # ticks along the top edge are off
             labelleft='off') # labels along the bottom edge are off
 
-def generate_cluster_graphs():
+def generate_spike_rate_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
-
+    room_shape = [[-60,60],[-60,60]]
+    bin_size = 2
+    
+    x = np.arange(room_shape[0][0],room_shape[0][1],bin_size)
+    y = np.arange(room_shape[1][0],room_shape[1][1],bin_size)
+    Xs, Ys = np.meshgrid(x, y)
     
     # Filenames (fn) are named descriptively:
     # session 18:14:04 on day 10/25/2013
@@ -62,9 +70,11 @@ def generate_cluster_graphs():
         plt.figure()
         for spk_i, i in zip(spk_is, range(tot_spks)):
             plt.subplot(subp_x,subp_y, i+1)
-            plot_spks(vl, spk_i, i+2)
-        plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+            rates = spike_rate(room_shape,vl,spk_i,bin_size)
+            logging.info('Processed firing rates for cluster %i', i+2)
+            plot_rates(Xs,Ys,rates,i+2)
+            
+        plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
         #plt.show()
-        #plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+        plt.savefig('GenerateFigures/Images/Animal %i, Tetrode %i, Session %i: Spike rate'%(animal,tetrode,session))
 
-    

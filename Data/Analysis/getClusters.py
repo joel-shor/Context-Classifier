@@ -31,6 +31,7 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     logging.info('%i pts in cluster %i',len(st),target_cl)
     if 1.0*len(st)/len(cl['Label']) > .05:
         logging.warning('Are you SURE you want to proceed?')
+        return np.NAN
         y = raw_input()
         if y in ['n', 'N']:
             return np.NAN
@@ -51,23 +52,3 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
     return spk_i
-
-
-    plt.figure()
-    
-def spike_rate(room_shape, vl, spk_i):
-    cmapping = cmapping=get_cmap('Reds')
-    cntr = plt.contourf(Xs,Ys,Zs,cmap=cmapping)
-
-if __name__ == '__main__':
-    animal = 66
-    session = 60 # This is August 7, 2013 run
-    tetrode = 4
-    
-    from readData import load_mux, load_cl, load_vl
-    fn, trigger_tm = load_mux(animal, session)
-    cl = load_cl(animal,fn,tetrode)
-    vl = load_vl(animal,fn)
-    
-    print spike_loc(cl, vl, trigger_tm, target_cl=2)
-    import pdb; pdb.set_trace()
