@@ -35,7 +35,7 @@ def find_runs(task):
 
 if __name__ == '__main__':
     from matplotlib import pyplot as plt
-    from readData import load_mux, load_vl
+    from Data.readData import load_mux, load_vl
     num = 66
     session = 60
     
@@ -46,6 +46,8 @@ if __name__ == '__main__':
     
     n,bins, _ = plt.hist(run_len,bins=range(1,np.max(run_len)+1))
     plt.title('Run length')
+    
+    import pdb; pdb.set_trace()
 
     plt.figure()
     plt.hist(run_len,bins=range(1,np.max(run_len)+1),cumulative=-1)

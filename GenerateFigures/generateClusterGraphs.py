@@ -44,8 +44,7 @@ def generate_cluster_graphs():
     # session 18:14:04 on day 10/25/2013
     # load virmenLog75\20131025T181404.cmb.mat
     
-    for tetrode in range(1,17):
-        
+    for tetrode in range(1,17):  
         fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
         vl = load_vl(animal,fn)
@@ -64,7 +63,7 @@ def generate_cluster_graphs():
             plt.subplot(subp_x,subp_y, i+1)
             plot_spks(vl, spk_i, i+2)
         plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        #plt.show()
+        plt.show()
         #plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
 
     

@@ -53,7 +53,7 @@ def generate_spike_rate_graphs():
     # load virmenLog75\20131025T181404.cmb.mat
     
     for tetrode in range(1,17):
-        
+    #for tetrode in [7]:    
         fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
         vl = load_vl(animal,fn)
@@ -66,15 +66,20 @@ def generate_spike_rate_graphs():
 
         tot_spks = len(spk_is)
         subp_x, subp_y = get_subplot_size(tot_spks)
-        print subp_x, subp_y
+
         plt.figure()
         for spk_i, i in zip(spk_is, range(tot_spks)):
             plt.subplot(subp_x,subp_y, i+1)
             rates = spike_rate(room_shape,vl,spk_i,bin_size)
             logging.info('Processed firing rates for cluster %i', i+2)
-            plot_rates(Xs,Ys,place_field(rates),i+2)
+            #plot_rates(Xs,Ys,place_field(rates),i+2)
+            plot_rates(Xs,Ys,rates,i+2)
             
+        #plt.suptitle('Place Fields: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+        #plt.show()
+        #plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
+        
         plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
         #plt.show()
-        plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
-
+        plt.savefig('GenerateFigures/Images/Spike Rate/Animal %i, Tetrode %i, Session %i: Spike Rate'%(animal,tetrode,session))
+        

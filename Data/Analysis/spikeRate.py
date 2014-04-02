@@ -44,11 +44,14 @@ def spike_rate(room_shape, vl, spk_i, bin_size=2):
             
             spk_cnt = np.sum(np.logical_and(x_strip_spks,y_strip_spks))
             spks[xbin,ybin] = 1.0*spk_cnt
+            
+            if spk_cnt > time_spent:
+                raise Exception('Spike miscount')
     
     # Smooth
     spks = gaussian_filter(spks,2)
     times_spent = gaussian_filter(times_spent,2)
-    times_spent[np.nonzero(times_spent==0)] = np.Infinity
+    times_spent[np.nonzero(times_spent == 0)] = np.Infinity
 
     return spks/times_spent
 

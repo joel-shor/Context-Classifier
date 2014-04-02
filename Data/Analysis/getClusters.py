@@ -12,7 +12,11 @@ from matlabRound import matround
 def spike_loc(cl, vl, trigger_tm, target_cl):
     ''' Return the indices of vl['xs'] and vl['ys']
         that correspond to spikes with cluster label
-        target_cl '''
+        target_cl.
+        
+        Note: vl['xs'] and vl['ys'] have repeated values.
+            We must return exactly one index for each unique
+            location.'''
     
     if target_cl == 1:
         logging.warning('Are you SURE you want to find cluster 1?')
@@ -51,4 +55,4 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     # Only leave spikes when rat is running faster than 2 in /sec
     spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
-    return spk_i
+    return np.unique(spk_i)
