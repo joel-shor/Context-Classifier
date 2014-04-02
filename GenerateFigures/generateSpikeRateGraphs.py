@@ -8,7 +8,7 @@ import logging
 from Data.readData import load_mux, load_vl, load_cl
 from matplotlib import pyplot as plt
 from Data.Analysis.getClusters import spike_loc
-from Data.Analysis.spikeRate import spike_rate
+from Data.Analysis.spikeRate import spike_rate, place_field
 
 import numpy as np
 clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
@@ -72,9 +72,9 @@ def generate_spike_rate_graphs():
             plt.subplot(subp_x,subp_y, i+1)
             rates = spike_rate(room_shape,vl,spk_i,bin_size)
             logging.info('Processed firing rates for cluster %i', i+2)
-            plot_rates(Xs,Ys,rates,i+2)
+            plot_rates(Xs,Ys,place_field(rates),i+2)
             
         plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
         #plt.show()
-        plt.savefig('GenerateFigures/Images/Animal %i, Tetrode %i, Session %i: Spike rate'%(animal,tetrode,session))
+        plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
 

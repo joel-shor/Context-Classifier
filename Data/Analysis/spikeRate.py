@@ -52,7 +52,7 @@ def spike_rate(room_shape, vl, spk_i, bin_size=2):
 
     return spks/times_spent
 
-def place_field(firing_rate,std_devs=3):
+def place_field(firing_rate,std_devs=5):
     mn = np.average(firing_rate)
     std = np.std(firing_rate)
     return firing_rate > mn+std_devs*std
