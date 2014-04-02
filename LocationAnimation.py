@@ -12,7 +12,7 @@ import gobject as gobj
 import logging
 
 from Data.readData import load_mux, load_vl, load_wv, load_cl
-from Data.matchClToVl import match_cl_to_vl
+from Data.Analysis.matchClToVl import match_cl_to_vl
 from HMM.PiecewiseHMM import PiecewiseHMM
 
 
