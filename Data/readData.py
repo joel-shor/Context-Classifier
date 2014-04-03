@@ -50,8 +50,8 @@ def load_vl(animal, fn):
             now: [1x32993 double]
         position: [2x32993 double]
         velocity: [2x32993 double]
-          cylPos: [2x32993 double]
-    currentWorld: [1x32993 double]
+          targetPos: [2x32993 double]
+    clockwiseness: [1x32993 double]
            isITI: [1x32993 double]
         isReward: [1x32993 double]
            exper: [1x1 virmenExperiment]
@@ -70,6 +70,10 @@ def load_vl(animal, fn):
     ys = tmp['virmenLog'][0,0][1][1]
     vxs = tmp['virmenLog'][0,0][2][0]
     vys = tmp['virmenLog'][0,0][2][1]
+    
+    txs = tmp['virmenLog'][0,0][3][0]
+    tys = tmp['virmenLog'][0,0][3][1]
+    clockwiseness = tmp['virmenLog'][0,0][4][0]
 
     iteration_time = np.ravel(tmp['virmenLog'][0,0][-1][0,0][0])
     iteration_num = np.ravel(tmp['virmenLog'][0,0][-1][0,0][1])
@@ -87,7 +91,10 @@ def load_vl(animal, fn):
             'vxs': vxs, 
             'vys': vys, 
             'Iter time': iteration_time,
-            'Iter num': iteration_num}
+            'Iter num': iteration_num,
+            'txs': txs,
+            'tys': tys,
+            'clockwise':clockwiseness}
  
 def load_wv(animal, fn, tetrode):
     ''' A waveform file is a list of 4 data points corresponding to

@@ -4,7 +4,7 @@ from LiveData.EnvironmentReader import EnvironmentReader
 class MainWin:
     ''' Object which updates the environment and waveform windows. '''
     
-    def __init__(self, step=10):
+    def __init__(self, step):
         self.iter_num = 0
         self.step = step
         self.ER = None

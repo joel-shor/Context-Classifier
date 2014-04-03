@@ -41,6 +41,9 @@ class EnvironmentReader(Reader):
                                          animated=True)
         self.iters = self.ax.text(self.maxx-1, room_shape[1][0]+3,
                                   '',ha='right',animated=True)
+        self.target = Circle([0,0],0,animated=True,color='r')
+        self.ax.add_artist(self.target)
+        
         self.ax.set_xlim(room_shape[0])
         self.ax.set_ylim(room_shape[1])
         
@@ -110,6 +113,9 @@ class EnvironmentReader(Reader):
         ''' Display the environment data to the window.
         
             The environment data are inputs. '''
+        target_x = self.vl['txs'][self.cur_i]
+        target_y = self.vl['tys'][self.cur_i]
+        
         
         self.iters.set_text('%i/%i'%(self.cur_iter,self.max_iter))
         
@@ -126,12 +132,20 @@ class EnvironmentReader(Reader):
         self.pos.set_data(self.x_hist,self.y_hist)
         if vx != 0 or vy != 0: 
             self.vel.set_positions([x, y], [x+vx,y+vy])
+
         self.radius.set_data([self.cntr_x,x],[self.cntr_y,y])
 
-        if self.is_clockwise(x,y,vx,vy) == 1:
+        cur_orientation = self.is_clockwise(x,y,vx,vy)
+        if  cur_orientation == 1:
             self.clockcounter.set_text('Clockwise')
         else:
             self.clockcounter.set_text('Counterclockwise')
+        if cur_orientation != self.vl['clockwise'][self.cur_i]:
+            print 'NOT THE SAME ORIENTATION'
+            import pdb; pdb.set_trace()
+
+        self.target.set_radius(2)
+        self.target.center = [target_x,target_y]
 
         try:
             self._make_prediction(self.is_clockwise(x,y,vx,vy))
@@ -140,7 +154,8 @@ class EnvironmentReader(Reader):
             #logging.warning('Make prediction failed.')
 
         for itm in [self.pos, self.vel, self.radius,
-                    self.clockcounter,self.iters, self.predicted_counter]:
+                    self.clockcounter,self.iters, 
+                    self.predicted_counter, self.target]:
             self.ax.draw_artist(itm)
         
         self.canvas.blit(self.ax.bbox)
@@ -149,5 +164,5 @@ class EnvironmentReader(Reader):
         ''' Determines if motion is clockwise around the center
             of the room, which is [0, MAXX] x [0, MAXY] '''
         cross_prod = (x-self.cntr_x)*vy - (y-self.cntr_y)*vx
-        clockwise = True if cross_prod < 0 else False
-        return 1 if clockwise else 0
+        clockwise = 2*(cross_prod<0)-1
+        return clockwise
