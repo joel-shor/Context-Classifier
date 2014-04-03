@@ -52,7 +52,7 @@ def generate_spike_rate_graphs():
     # session 18:14:04 on day 10/25/2013
     # load virmenLog75\20131025T181404.cmb.mat
     
-    for tetrode in range(1,17):
+    for tetrode in range(1,2):
     #for tetrode in [7]:    
         fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
@@ -80,6 +80,6 @@ def generate_spike_rate_graphs():
         #plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
         
         plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        #plt.show()
-        plt.savefig('GenerateFigures/Images/Spike Rate/Animal %i, Tetrode %i, Session %i: Spike Rate'%(animal,tetrode,session))
+        plt.show()
+        #plt.savefig('GenerateFigures/Images/Spike Rate/Animal %i, Tetrode %i, Session %i: Spike Rate'%(animal,tetrode,session))
         
