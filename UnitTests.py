@@ -23,12 +23,13 @@ class DataTests(unittest.TestCase):
         tetrode = 1
         
         fn, _ = load_mux(num,session)
-        cl = load_cl(num,fn,tetrode)
+        cl2 = load_cl(num,fn,tetrode)
         vl = load_vl(num,fn)
         wv = load_wv(num,fn,tetrode)
-        self.failUnless(len(cl) == 3)
+        self.failUnless(len(cl2) == 3)
         self.failUnless(len(vl) == 8)
         self.failUnless(wv.shape[1] == 4)
+        import pdb; pdb.set_trace()
 
     def testDateNum(self):
         tmp = datetime(year=1998,month=2,day=4,minute=5)
