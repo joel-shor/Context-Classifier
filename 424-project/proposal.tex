@@ -9,8 +9,8 @@
 \pagestyle{fancy}
 \fancyhead{}
 \fancyfoot{}
-\fancyhead[LO]{Colleen Carroll, Nicolas Crowell,\\ Elan Kugelmass, and Andrew 
-		Morrison}
+\fancyhead[LO]{Colleen Carroll, Nicolas Crowell,\\ 
+	       Elan Kugelmass, and Andrew Morrison}
 \fancyhead[CO]{4/3/14}
 \fancyhead[RO]{\thepage}
 \renewcommand{\headrulewidth}{1pt}
@@ -29,20 +29,102 @@
 \ \ \\
 COS424 \\
 Final project proposal
-\\ \\
+\\
 
 \subsection*{What is the problem? Why work on it?}
+It is thought that mammals maintain neurological representations of their 
+reference frame and context in the hippocampus. This map is maintained in a set 
+of cells called `place cells.' We can observe activity in this cell cluster 
+using electrodes. Rats are observed while performing a task. At certain points, 
+the reference
+frame, i.e. the task assigned to a rat,
+ is abruptly changed. The `place cell' theory predicts that the firing pattern
+of place cells should change upon remapping, in order to reflect the new
+reference frame the rat has established. The precise relationship between
+shifts of context and place cell activity has not yet been characterized.
+We will develop a classifier to relate nerve activity patterns to specific
+rat behaviors and exogenous environmetal changes.
+
+The complication of this problem is that we do not have a particularly
+good understanding of why certain place cells fire, and there is a substantial
+amount of extraneous neurological noise in the observations. Individual place
+cells may represent different locations after context remappings, or more than
+one location within a context. At a given moment, it is possible that no
+cells are firing, perhaps because there is no place cell corresponding to the
+current location of the rat. Noise from the data collection process, including
+neurological noise from adjacent cell firings, make this a ripe opportunity
+for machine learning.
 
 \subsection*{What data are available?}
-
+Data collected from eight CA1 tetrodes have been recorded from a rat performing 
+two
+ distinct behaviors in virtual reality. Electrodes from a single tetrode are 
+spaced far 
+enough apart so that typical electric waves register different amplitudes, but 
+close
+ enough together so that all electrodes measure a wave if one does. This 
+assumption 
+allows spike data to be sorted according to which neuron generated the spike. 
+Training
+ data for supervised learning can be obtained from neural recordings taken when 
+a rat is
+ unambiguously attending to one task or the other.
+
+
 \subsection*{What methods have others tried?}
-
+Within neuroscience, the question of the function of place cells ha been 
+explored through 
+various experiments to determine what external stimuli will cause them to fire. 
+Earlier studies used a dot product similarity threshold-based statistic [1], as 
+well as
+applying a very general Bayesian framework and kernel density estimation 
+technique [2]
+to try to use neuronal spike data to do spatial localization. However, no 
+research has yet been done to 
+determine the effectiveness of applying machine learning classification 
+techniques to 
+determining the rat's neuroloical state during the transition period between 
+tasks. 
+
+[1]: Jezek, Henrikson, Treves, Moser, Moser, 2011
+[2]: Kloosterman, 2013
+
 \subsection*{What methods do we plan to explore or develop?}
+We hypothesize that this problem is relatively well-modeled by a hidden
+Markov model, in which the latent state is a categorical random variable
+where the values of the variable correspond to the current mental context
+of the rat subject. In this experiment, the context is believed to correspond 
+to
+the task which the rat currently believes it is completing. We also plan to 
+explore 
+conditional random fields, which may offer another way to use the relational 
+information 
+among the observations, as well as much of the information belonging to each 
+observation.
+
 
 \subsection*{What does success mean? How will we evaluate it?}
-
+Running our classifier on the rat's neurological state would allow us to predict 
+the rat's behavior at 
+different timepoints in the experiment, for which we have labelled data to 
+compare against.
+Temporally close predictions would mean a successful classifier.
+
 \subsection*{What challenges do we expect to face?}
-
-
+Determining the rat's nuerological state depends on several factors. This is 
+not a simple matter of 
+determining which place cells are firing while the rat is completing a certain 
+task. The place cells do not
+necessarily fire constantly while the rat is in a certain context. It is also 
+uncertain whether place cells 
+actually correspond directly to a location in space or some other feature or 
+set of features of the 
+rat's environment. These among other uncertainties about why a place cell fires 
+could mean that 
+we have difficulty determining the features to consider in our model and which 
+distributions would 
+best represent them. However, getting a better understanding of the importance 
+of certain features 
+can bring us closer to our goal of understanding the role of place cells.
 
 \end{document}

@@ -3,3 +3,8 @@
 *.mat
 *.png
 *.jpg
+*.aux
+*.log
+*.out
+proposal.pdf
+
