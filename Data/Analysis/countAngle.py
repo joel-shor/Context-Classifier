@@ -7,6 +7,8 @@ import numpy as np
 from numpy import power as powr
 
 def count_angle(vl, room_shape):
+    ''' Generate the cumulative, signed angle traveled. '''
+    
     [[minx,maxx],[miny,maxy]] = room_shape
     if maxx-minx != maxy-miny:
         raise Exception('Room shape assumptions not accurate.')

@@ -33,7 +33,6 @@ ie changes from chasing the counterclockwise-moving marker to chasing the clockw
 		+ AnimationWindow.py
 + MakeFig.py
 	+ GenerateFigures/
-		+ generateClusterGraphs.py
-		+ generateSpikeRateGraphs.py
+		+ A folder containing scripts to visualize data
 
 HMM/ is currently not functional

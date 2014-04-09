@@ -9,7 +9,6 @@ def generate_angle_graphs():
     room_shape = [[-60,60],[-60,60]]
     
     fn, _ = load_mux(animal, session)
-    print fn
     vl = load_vl(animal,fn)
     
     angls = count_angle(vl,room_shape)
