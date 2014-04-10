@@ -1,5 +1,5 @@
-from LiveData.WaveformReader import WaveformReader
-from LiveData.EnvironmentReader import EnvironmentReader
+from Animation.WaveformReader import WaveformReader
+from Animation.EnvironmentReader import EnvironmentReader
 
 class MainWin:
     ''' Object which updates the environment and waveform windows. '''

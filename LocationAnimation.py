@@ -6,7 +6,7 @@ except:
 import gtk
 
 
-from LiveData.AnimationWindow import MainWin as MainWin
+from Animation.AnimationWindow import MainWin as MainWin
 
 import gobject as gobj
 import logging
@@ -16,7 +16,7 @@ from Data.Analysis.matchClToVl import match_cl_to_vl
 from ContextPredictors.PiecewiseHMM import PiecewiseHMM
 
 timeout_rate = 15
-animation_step_size = 100
+animation_step_size = 10
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
