@@ -13,10 +13,10 @@ import logging
 
 from Data.readData import load_mux, load_vl, load_wv, load_cl
 from Data.Analysis.matchClToVl import match_cl_to_vl
-from HMM.PiecewiseHMM import PiecewiseHMM
+from ContextPredictors.PiecewiseHMM import PiecewiseHMM
 
 timeout_rate = 15
-animation_step_size = 50
+animation_step_size = 100
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
@@ -53,11 +53,11 @@ if __name__ == '__main__':
     #HMM.print_perc_correct()
     
     #physical = rand_walk(step_num=1000,step_size=.05)
-    HMM = None
+    CPr = None
     top = MainWin(step=animation_step_size)
     top.init_ER(vl, room_shape)
     top.init_WR(wv, cl, wv_iters)
-    top.add_predictor(HMM)
+    top.add_predictor(CPr)
     gobj.timeout_add(timeout_rate,top.update)
     gtk.main()
     

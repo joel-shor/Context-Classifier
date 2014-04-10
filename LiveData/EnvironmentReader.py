@@ -42,6 +42,7 @@ class EnvironmentReader(Reader):
         self.iters = self.ax.text(self.maxx-1, room_shape[1][0]+3,
                                   '',ha='right',animated=True)
         self.target = Circle([0,0],0,animated=True,color='r')
+        self.target.set_radius(11)
         self.ax.add_artist(self.target)
         
         self.ax.set_xlim(room_shape[0])
@@ -70,7 +71,6 @@ class EnvironmentReader(Reader):
             has already been recorded.'''
         if iteration is not None: self.cur_iter = iteration
         try:
-            
             cur_j = 1+self.cur_i+ np.nonzero(self.vl['Iter num'][self.cur_i:] == self.cur_iter)[0][-1]
         except:
             # There is no iteration with that value
@@ -113,56 +113,62 @@ class EnvironmentReader(Reader):
         ''' Display the environment data to the window.
         
             The environment data are inputs. '''
-        target_x = self.vl['txs'][self.cur_i]
-        target_y = self.vl['tys'][self.cur_i]
-        
-        
-        self.iters.set_text('%i/%i'%(self.cur_iter,self.max_iter))
         
         if np.any(np.isnan(xs)):
             return
         
+        # Display how far along in the animation we are
+        self.iters.set_text('%i/%i'%(self.cur_iter,self.max_iter))
+        
+        # Begin the drawing process
         self.canvas.restore_region(self.background)
         
+        # Calculate and draw rat's physical position
         x = xs[-1]; y=ys[-1]; vx=vxs[-1]; vy=vys[-1]
-        
         self.x_hist.extend(xs)
         self.y_hist.extend(ys)
-        
         self.pos.set_data(self.x_hist,self.y_hist)
+        
+        # Adjust velocity vector
         if vx != 0 or vy != 0: 
             self.vel.set_positions([x, y], [x+vx,y+vy])
 
+        # Adjust radius line
         self.radius.set_data([self.cntr_x,x],[self.cntr_y,y])
 
+        # Calculate physical orientation, display it, and compare with
+        #  virmenLog's orientatino assessment
         cur_orientation = self.is_clockwise(x,y,vx,vy)
+        print cur_orientation
         if  cur_orientation == 1:
             self.clockcounter.set_text('Clockwise')
         else:
             self.clockcounter.set_text('Counterclockwise')
-        if cur_orientation != self.vl['clockwise'][self.cur_i]:
-            print 'NOT THE SAME ORIENTATION'
-            import pdb; pdb.set_trace()
 
-        self.target.set_radius(2)
+        # Adjust the location  of the rat's chased target
+        target_x = self.vl['txs'][self.cur_i]
+        target_y = self.vl['tys'][self.cur_i]
         self.target.center = [target_x,target_y]
 
+        # Make a context prediction
         try:
             self._make_prediction(self.is_clockwise(x,y,vx,vy))
         except:
             pass
             #logging.warning('Make prediction failed.')
 
+        # Update the drawing window
         for itm in [self.pos, self.vel, self.radius,
                     self.clockcounter,self.iters, 
                     self.predicted_counter, self.target]:
             self.ax.draw_artist(itm)
-        
         self.canvas.blit(self.ax.bbox)
 
     def is_clockwise(self,x,y,vx,vy):
         ''' Determines if motion is clockwise around the center
-            of the room, which is [0, MAXX] x [0, MAXY] '''
+            of the room, which is [0, MAXX] x [0, MAXY] 
+            
+            Output mapped to {-1,1} to conform with vl['Task'] labels.'''
         cross_prod = (x-self.cntr_x)*vy - (y-self.cntr_y)*vx
-        clockwise = 2*(cross_prod<0)-1
+        clockwise = 2*(cross_prod>0)-1
         return clockwise

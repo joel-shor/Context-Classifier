@@ -18,7 +18,7 @@ class MainWin:
         self.WR = WaveformReader(wv,cl,wv_iters,self.start_iter)
         
     def add_predictor(self, predictor):
-        self.HMM = predictor
+        self.CPr = predictor
     
     def _make_prediction(self, actual_is_clockwise):
         ''' This is going to cheat and look into the future. '''

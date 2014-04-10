@@ -1,4 +1,6 @@
 from matplotlib import pyplot as plt
+import numpy as np
+
 from Data.readData import load_mux, load_vl
 
 from Data.Analysis.countAngle import count_angle
@@ -13,4 +15,5 @@ def generate_angle_graphs():
     
     angls = count_angle(vl,room_shape)
     plt.plot(angls)
+    plt.plot(vl['Task']*np.max(angls))
     plt.show()

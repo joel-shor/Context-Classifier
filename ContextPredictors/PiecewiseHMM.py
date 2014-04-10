@@ -6,11 +6,13 @@ import numpy as np
 from sklearn.hmm import GaussianHMM
 import logging
 
+from Predictor import ContextPredictor
+
 POS_PTS_PER_CELL = 1000.0
 SIZE_OF_CELL = 0
 NONE = -1
 
-class PiecewiseHMM:
+class PiecewiseHMM(ContextPredictor):
 	''' A hidden markov model that calculates the state
 		of a sequence of x,y,waveform triples. There are a number of
 		models for each sector of the physical environment.
