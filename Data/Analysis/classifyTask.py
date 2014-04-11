@@ -5,7 +5,7 @@ Created on Mar 23, 2014
 '''
 import numpy as np
 
-def classify_task(vl, cntrx, cntry):
+def get_orientation(vl, cntrx, cntry):
     ''' Returns an array classifying which task the rat
         is performing based on environment data. '''
     x = vl['xs']
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     
     fn, _= load_mux(num,session)
     vl = load_vl(num,fn)
-    task = classify_task(vl,0,0)
+    task = get_orientation(vl,0,0)
     sgn, run_len = find_runs(task)
     
     n,bins, _ = plt.hist(run_len,bins=range(1,np.max(run_len)+1))

@@ -15,7 +15,7 @@ import logging
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     #generate_cluster_graphs()
-    #generate_spike_rate_graphs()
+    generate_spike_rate_graphs()
     #generate_run_length_graphs()
     #generate_theta_rhythm_graphs()
-    generate_angle_graphs()
+    #generate_angle_graphs()

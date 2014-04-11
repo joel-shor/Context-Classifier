@@ -5,6 +5,7 @@ Created on Mar 29, 2014
 '''
 import numpy as np
 from scipy.ndimage.filters import gaussian_filter
+import logging
 
 def spike_rate(room_shape, vl, spk_i, bin_size=2):
     [[xmin,xmax],[ymin,ymax]] = room_shape

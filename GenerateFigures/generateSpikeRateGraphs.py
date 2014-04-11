@@ -42,7 +42,7 @@ def generate_spike_rate_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
     room_shape = [[-60,60],[-60,60]]
-    bin_size = 2
+    bin_size = 4
     
     x = np.arange(room_shape[0][0],room_shape[0][1],bin_size)
     y = np.arange(room_shape[1][0],room_shape[1][1],bin_size)
@@ -60,6 +60,7 @@ def generate_spike_rate_graphs():
     
         spk_is = []
         for wanted_cl in range(2,100):
+            logging.info('Finding spike locations for cell %i, tetrode %i',wanted_cl,tetrode)
             spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
             if spk_i is np.NAN: break
             spk_is.append(spk_i)

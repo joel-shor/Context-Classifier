@@ -7,7 +7,7 @@ session = 60
 
 fn, _= load_mux(num,session)
 vl = load_vl(num,fn)
-task = classify_task(vl,0,0)
+task = get_orientation(vl,0,0)
 sgn, run_len = find_runs(task)
 
 ns,bins, _ = plt.hist(run_len,bins=range(1,np.max(run_len)+1))

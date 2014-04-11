@@ -15,6 +15,8 @@ def match_cl_to_vl(times, vl, trigger_tm):
     times /= (cl_rate*24*60*60)
     times += trigger_tm
     
+    import pdb; pdb.set_trace()
+    
     # Clean up the virmenLog iterations numbers by removing the
     #  nan ones and linearly interpolating between them
     f = np.nonzero(~np.isnan(vl['Iter num']))[0]

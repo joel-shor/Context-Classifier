@@ -10,7 +10,7 @@ import numpy as np
 from Data.readData import load_cl, load_vl, load_wv, load_mux, _datenum
 from datetime import datetime
 from Data.Analysis.getClusters import spike_loc
-from Data.Analysis.classifyTask import classify_task, find_runs
+from Data.Analysis.classifyTask import get_orientation, find_runs
 from Data.Analysis.filter import bandfilt
 
 from os.path import join
@@ -79,7 +79,7 @@ class AnalysisTests(unittest.TestCase):
         fn, _= load_mux(num,session)
         vl = load_vl(num,fn)
         
-        task = classify_task(vl, 0, 0)
+        task = get_orientation(vl, 0, 0)
         
         self.failUnless(len(task) == len(vl['xs']))
         

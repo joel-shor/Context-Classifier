@@ -139,7 +139,6 @@ class EnvironmentReader(Reader):
         # Calculate physical orientation, display it, and compare with
         #  virmenLog's orientatino assessment
         cur_orientation = self.is_clockwise(x,y,vx,vy)
-        print cur_orientation
         if  cur_orientation == 1:
             self.clockcounter.set_text('Clockwise')
         else:

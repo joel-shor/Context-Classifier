@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 from Data.readData import load_mux, load_vl
-from Data.Analysis.classifyTask import classify_task, find_runs
+from Data.Analysis.classifyTask import get_orientation, find_runs
 import numpy as np
 
 
@@ -10,7 +10,7 @@ def generate_run_length_graphs():
     
     fn, _= load_mux(num,session)
     vl = load_vl(num,fn)
-    task = classify_task(vl,0,0)
+    task = get_orientation(vl,0,0)
     sgn, run_len = find_runs(task)
     
     ns,bins, _ = plt.hist(run_len,bins=range(1,np.max(run_len)+1))

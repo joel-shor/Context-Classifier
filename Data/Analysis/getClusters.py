@@ -32,13 +32,14 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
         return np.NAN
     
     # Ask user if he wants to waste time on an excessively large dataset
+    '''
     logging.info('%i pts in cluster %i',len(st),target_cl)
     if 1.0*len(st)/len(cl['Label']) > .05:
         logging.warning('Are you SURE you want to proceed?')
         return np.NAN
         y = raw_input()
         if y in ['n', 'N']:
-            return np.NAN
+            return np.NAN'''
     
     # Get the vl indices corresponding to times in st
     spk_i = np.array(list(match_cl_to_vl(st, vl, trigger_tm)))
@@ -56,3 +57,6 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
     return np.unique(spk_i)
+
+if __name__ == '__main__':
+    import timeit
