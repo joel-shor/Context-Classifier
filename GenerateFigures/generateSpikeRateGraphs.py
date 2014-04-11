@@ -11,7 +11,8 @@ from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate, place_field
 
 import numpy as np
-clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
+clrs = ['b','g','r','c','m','k','b','g','r','c','m','k']
+
 
 def get_subplot_size(gs):
     sqr = int(np.ceil(np.sqrt(gs)))
@@ -42,7 +43,7 @@ def generate_spike_rate_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
     room_shape = [[-60,60],[-60,60]]
-    bin_size = 4
+    bin_size = 10
     
     x = np.arange(room_shape[0][0],room_shape[0][1],bin_size)
     y = np.arange(room_shape[1][0],room_shape[1][1],bin_size)
@@ -51,36 +52,39 @@ def generate_spike_rate_graphs():
     # Filenames (fn) are named descriptively:
     # session 18:14:04 on day 10/25/2013
     # load virmenLog75\20131025T181404.cmb.mat
-    
+    fn, trigger_tm = load_mux(animal, session)
+    vl = load_vl(animal,fn)
     for tetrode in range(1,2):
-    #for tetrode in [7]:    
-        fn, trigger_tm = load_mux(animal, session)
         cl = load_cl(animal,fn,tetrode)
-        vl = load_vl(animal,fn)
+        for context in [-1,1]:
+            global clrs
+            clrs = ['b','g','r','c','m','k','b','g','r','c','m','k']
+            cntx_is = np.nonzero(vl['Task']==context)[0]
+            spk_is = []
+            for wanted_cl in range(2,7):
+                logging.info('Finding spike locations for cell %i, tetrode %i, context %i',wanted_cl,tetrode,context)
+                spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
+                if spk_i is np.NAN: break
+                
+                spk_i = np.intersect1d(cntx_is, spk_i)
+                spk_is.append(spk_i)
     
-        spk_is = []
-        for wanted_cl in range(2,100):
-            logging.info('Finding spike locations for cell %i, tetrode %i',wanted_cl,tetrode)
-            spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
-            if spk_i is np.NAN: break
-            spk_is.append(spk_i)
-
-        tot_spks = len(spk_is)
-        subp_x, subp_y = get_subplot_size(tot_spks)
-
-        plt.figure()
-        for spk_i, i in zip(spk_is, range(tot_spks)):
-            plt.subplot(subp_x,subp_y, i+1)
-            rates = spike_rate(room_shape,vl,spk_i,bin_size)
-            logging.info('Processed firing rates for cluster %i', i+2)
-            #plot_rates(Xs,Ys,place_field(rates),i+2)
-            plot_rates(Xs,Ys,rates,i+2)
+            tot_spks = len(spk_is)
+            subp_x, subp_y = get_subplot_size(tot_spks)
+    
+            plt.figure()
+            for spk_i, i in zip(spk_is, range(tot_spks)):
+                plt.subplot(subp_x,subp_y, i+1)
+                rates = spike_rate(room_shape,vl,spk_i,bin_size,valid=(vl['Task']==context))
+                logging.info('Processed firing rates for cluster %i', i+2)
+                #plot_rates(Xs,Ys,place_field(rates),i+2)
+                plot_rates(Xs,Ys,rates,i+2)
+                
+            #plt.suptitle('Place Fields: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+            #plt.show()
+            #plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
             
-        #plt.suptitle('Place Fields: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        #plt.show()
-        #plt.savefig('GenerateFigures/Images/Place Fields/Animal %i, Tetrode %i, Session %i: Place Fields'%(animal,tetrode,session))
-        
-        plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        plt.show()
-        #plt.savefig('GenerateFigures/Images/Spike Rate/Animal %i, Tetrode %i, Session %i: Spike Rate'%(animal,tetrode,session))
-        
+            plt.suptitle('Spike Rates: Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
+            #plt.show()
+            plt.savefig('GenerateFigures/Images/Context Spike Rate/Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i'%(animal,tetrode,session, context))
+            

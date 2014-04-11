@@ -57,6 +57,3 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
     return np.unique(spk_i)
-
-if __name__ == '__main__':
-    import timeit

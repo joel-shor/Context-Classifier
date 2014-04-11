@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from Data.Analysis.getClusters import spike_loc
 
-clrs = ['b','g','r','c','m','k','b','g','r','c','m','k',]
+clrs = ['b','g','r','c','m','k','b','g','r','c','m','k']
 
 def get_subplot_size(gs):
     sqr = int(np.ceil(np.sqrt(gs)))
@@ -38,32 +38,39 @@ def plot_spks(vl, spk_i, wanted_cl):
 def generate_cluster_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
-
     
     # Filenames (fn) are named descriptively:
     # session 18:14:04 on day 10/25/2013
     # load virmenLog75\20131025T181404.cmb.mat
     
-    for tetrode in range(1,17):  
-        fn, trigger_tm = load_mux(animal, session)
-        cl = load_cl(animal,fn,tetrode)
-        vl = load_vl(animal,fn)
+    for tetrode in range(1,2):  
+        for context in [1,-1]:
+            global clrs
+            clrs = ['b','g','r','c','m','k','b','g','r','c','m','k']
+            
+            fn, trigger_tm = load_mux(animal, session)
+            cl = load_cl(animal,fn,tetrode)
+            vl = load_vl(animal,fn)
+        
+            spk_is = []
+            for wanted_cl in range(2,100):
+                spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
+                if spk_i is np.NAN: break
+                cntx_is = np.nonzero(vl['Task']==context)[0]
+                spk_i = np.intersect1d(cntx_is, spk_i)
+                spk_is.append(spk_i)
     
-        spk_is = []
-        for wanted_cl in range(2,100):
-            spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
-            if spk_i is np.NAN: break
-            spk_is.append(spk_i)
-
-        tot_spks = len(spk_is)
-        subp_x, subp_y = get_subplot_size(tot_spks)
-        print subp_x, subp_y
-        plt.figure()
-        for spk_i, i in zip(spk_is, range(tot_spks)):
-            plt.subplot(subp_x,subp_y, i+1)
-            plot_spks(vl, spk_i, i+2)
-        plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
-        plt.show()
-        #plt.savefig('Images/Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+            tot_spks = len(spk_is)
+            subp_x, subp_y = get_subplot_size(tot_spks)
+            print subp_x, subp_y
+            plt.figure()
+            for spk_i, i in zip(spk_is, range(tot_spks)):
+                plt.subplot(subp_x,subp_y, i+1)
+                plot_spks(vl, spk_i, i+2)
+            plt.suptitle('Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
+            #plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
+            
+            #plt.show()
+            plt.savefig('GenerateFigures/Images/Context Spike Location/Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
 
     

@@ -15,8 +15,6 @@ def match_cl_to_vl(times, vl, trigger_tm):
     times /= (cl_rate*24*60*60)
     times += trigger_tm
     
-    import pdb; pdb.set_trace()
-    
     # Clean up the virmenLog iterations numbers by removing the
     #  nan ones and linearly interpolating between them
     f = np.nonzero(~np.isnan(vl['Iter num']))[0]
@@ -28,6 +26,9 @@ def match_cl_to_vl(times, vl, trigger_tm):
     y -= 1
 
     # Determine the iteration number at which each spike occurred
+    
+    # This is a real time killer
+    """
     for ndx in range(len(times)):
         try:
             # Find iteration preceeding spike
@@ -35,6 +36,15 @@ def match_cl_to_vl(times, vl, trigger_tm):
             # Make sure there is an iteration following the spike
             np.nonzero(vl['Iter time'] > times[ndx])[0][0]
             
+            yield y[f]
+        except:
+            # If nonzero is empty, the spike occurred before the first
+            #  or after the last spike
+            yield np.NAN"""
+    for ndx in range(len(times)):
+        try:
+            # Find iteration preceeding spike
+            f = np.nonzero(vl['Iter time'] < times[ndx])[0][-1] # Take the latimes one
             yield y[f]
         except:
             # If nonzero is empty, the spike occurred before the first
