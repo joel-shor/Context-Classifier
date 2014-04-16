@@ -137,7 +137,7 @@ class DotProduct(ContextPredictor):
         # Calculate mean vector
         self.means = np.zeros([len(self.labels),len(t_cells)])
         for lbl, cell in pr(range(base_vec.shape[2]),range(base_vec.shape[3])):
-            self.means[lbl,cell] = np.mean(base_vec[:,:,lbl,cell])
+            self.means[lbl,cell] = np.mean(base_vec[:,:,:,cell])
         self.means[self.means==0] = np.inf
         
         return base_vec, t_cells

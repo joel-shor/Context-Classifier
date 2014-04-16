@@ -59,6 +59,8 @@ def generate_DP_density_graph():
     plt.ylim([0,yedges[-1]])
     plt.colorbar(grph, extend='both')
     plt.title('Dot Product Classifier Accuracy')
+    plt.xlabel('Population vector x Correct Template')
+    plt.ylabel('Population vector x Incorrect Template')
     
     # Accuracy meter
     plt.figure()
@@ -67,5 +69,4 @@ def generate_DP_density_graph():
     plt.xlabel('Accuracy')
     
     plt.show()
-    plt.xlabel('Population vector x Correct Template')
-    plt.ylabel('Population vector x Incorrect Template')
+    
