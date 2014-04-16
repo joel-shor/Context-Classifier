@@ -10,8 +10,18 @@ import logging
 time_per_vl_pt = .02 #(seconds)
 
 def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
+    ''' Returns a matrix corresponding to the spike rate in the (i,j)th spatial bin. '''
+    
+    # Valid is a list of indices that are valid. We want an array with 1 in valid
+    #  spots and 0 elsewhere, so do the conversion
     if valid == None:
-        valid = np.ones(len(vl['Task']))
+        valid = np.array([True]*len(vl['Task']))
+    else:
+        valid_tmp = np.array([False]*len(vl['Task']))
+        valid_tmp[valid] = True
+        valid = valid_tmp
+    
+    
     [[xmin,xmax],[ymin,ymax]] = room_shape
     if (xmax-xmin)%bin_size != 0 or (ymax-ymin)%bin_size != 0:
         raise Exception('Bin size is not compatible with room size.')

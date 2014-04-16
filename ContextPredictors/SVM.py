@@ -13,7 +13,7 @@ from Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
 
-class DotProduct(ContextPredictor):
+class SVM(ContextPredictor):
     time_per_vl_pt = .02 #(seconds)
     good_clusters = {1:range(2,8),
                      2:range(2,8),

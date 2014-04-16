@@ -6,11 +6,10 @@ Created on Apr 11, 2014
 import logging
 import numpy as np
 
-from Data.readData import load_mux, load_vl, load_wv, load_cl
-from ContextPredictors.PiecewiseHMM import PiecewiseHMM
+from Data.readData import load_mux, load_vl, load_cl
 from ContextPredictors.DotProduct import DotProduct as Classifier
 
-if __name__ == '__main__':
+def generate_DP_density_graph():
     logging.basicConfig(level=logging.DEBUG)
     
     animal = 66
@@ -50,12 +49,23 @@ if __name__ == '__main__':
     incorrect_dp = incorrect_dp[np.nonzero(nonzero_is)[0]]
     
     from matplotlib import pyplot as plt
-    hist,xedges,yedges = np.histogram2d(correct_dp, incorrect_dp, 300)
     
-    Xs, Ys = np.meshgrid(xedges, yedges)
-    import pdb; pdb.set_trace()
-    grph = plt.pcolor(Xs,Ys,hist)
-    plt.colorbar(grph, extend='both')
+    # 2d Histogram
     plt.figure()
-    plt.scatter(correct_dp,incorrect_dp)
+    hist,xedges,yedges = np.histogram2d(correct_dp, incorrect_dp, 150)
+    Xs, Ys = np.meshgrid(xedges, yedges)
+    grph = plt.pcolor(Xs,Ys,hist)
+    plt.xlim([0,xedges[-1]])
+    plt.ylim([0,yedges[-1]])
+    plt.colorbar(grph, extend='both')
+    plt.title('Dot Product Classifier Accuracy')
+    
+    # Accuracy meter
+    plt.figure()
+    accuracy = correct_dp / np.sqrt(correct_dp**2+incorrect_dp**2)
+    plt.hist(accuracy)
+    plt.xlabel('Accuracy')
+    
     plt.show()
+    plt.xlabel('Population vector x Correct Template')
+    plt.ylabel('Population vector x Incorrect Template')

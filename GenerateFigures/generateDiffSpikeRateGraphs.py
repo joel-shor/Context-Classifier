@@ -13,7 +13,7 @@ from spikeRateGraph import plot_rates
 
 import numpy as np
 
-def generate_spike_rate_graphs():
+def generate_diff_spike_rate_graphs():
     animal = 66
     session = 60 # This is August 7, 2013 run
     room_shape = [[-60,60],[-60,60]]
@@ -44,31 +44,27 @@ def generate_spike_rate_graphs():
             
         tot_spks = len(spks)
     
-        rate_dict = {contxt:{} for contxt in contxt_is.keys()}
+        plt.figure('contour')
+        plt.clf()
+        plt.suptitle('Spike Rate Diff: Animal %i, Tetrode %i, Session %i,1'%(animal,tetrode,session))
+        plt.figure('pcolor')
+        plt.clf()
+        plt.suptitle('Spike Rate Diff: Animal %i, Tetrode %i, Session %i,2'%(animal,tetrode,session))
 
         for wanted_cl, i in zip(spks.keys(), range(tot_spks)):
+            tmp  = []
             for contxt in contxt_is.keys():
                 rates = spike_rate(room_shape,vl,spks[wanted_cl][contxt],
                                    bin_size,valid=contxt_is[contxt])
-                rate_dict[contxt][i+2] = rates
+                tmp.append(rates)
+            rate_diff = np.absolute(tmp[0]-tmp[1])
             logging.info('Processed firing rates for cluster %i', i+2)
             #plot_rates(Xs,Ys,place_field(rates),i+2)
+            plot_rates(room_shape, tot_spks, bin_size, rate_diff,i+2)
 
-        for contxt in contxt_is.keys():
-            plt.figure('contour')
-            plt.clf()
-            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,1'%(animal,tetrode,session,contxt))
-            plt.figure('pcolor')
-            plt.clf()
-            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,2'%(animal,tetrode,session,contxt))
-     
-            for clusters, rates in rate_dict[contxt].items():
-                plot_rates(room_shape, tot_spks, bin_size, rates,clusters)
-    
-            #plt.show()
-            ''''''
-            plt.figure('contour')
-            plt.savefig('GenerateFigures/Images/Context Spike Rates/Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,1'%(animal,tetrode,session,contxt))
-            plt.figure('pcolor')
-            plt.savefig('GenerateFigures/Images/Context Spike Rates/Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,2'%(animal,tetrode,session,contxt))
-            
+        #plt.show()
+        
+        plt.figure('contour')
+        plt.savefig('GenerateFigures/Images/Spike Rate Diffs/Type 1/Spike Rate Diff: Animal %i, Tetrode %i, Session %i,1'%(animal,tetrode,session))
+        plt.figure('pcolor')
+        plt.savefig('GenerateFigures/Images/Spike Rate Diffs/Type 2/Spike Rate Diff: Animal %i, Tetrode %i, Session %i,2'%(animal,tetrode,session))

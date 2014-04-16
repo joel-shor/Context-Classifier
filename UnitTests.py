@@ -6,12 +6,15 @@ Created on Mar 15, 2014
 
 import unittest
 import numpy as np
+import logging
 
 from Data.readData import load_cl, load_vl, load_wv, load_mux, _datenum
 from datetime import datetime
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.classifyTask import get_orientation, find_runs
 from Data.Analysis.filter import bandfilt
+
+from ContextPredictors.DotProduct import DotProduct
 
 from os.path import join
 
@@ -104,6 +107,25 @@ class AnalysisTests(unittest.TestCase):
         out = bandfilt(wv,6,8,freq)
         self.failUnless(np.sum(out-wv2) < 10**-10)
 
+class ContextPredictorTests(unittest.TestCase):
+    def testDotProduct(self):
+        logging.basicConfig(level=logging.CRITICAL)
+    
+        animal = 66
+        session = 60 # This is August 7, 2013 run
+        
+        fn, trigger_tm = load_mux(animal, session)
+        vl = load_vl(animal,fn)
+        cls = [load_cl(animal,fn,tetrode) for tetrode in range(1,3)]
+        
+        
+        room_shape = [[-60,60],[-60,60]]
+        bin_size = 15
+        clsfr = Classifier(vl,cls, trigger_tm, room_shape, bin_size)
+        baseline_similarity = np.zeros(clsfr.base_vec.shape[:2])
+        for i,j in zip(range(clsfr.base_vec.shape[0]),range(clsfr.base_vec.shape[1])):
+            baseline_similarity[i,j] = np.sum(clsfr.base_vec[i,j,0,:]*clsfr.base_vec[i,j,1,:])
+        
 def main():
     unittest.main()
 

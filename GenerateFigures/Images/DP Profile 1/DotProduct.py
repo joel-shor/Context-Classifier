@@ -15,15 +15,15 @@ from Data.Analysis.spikeRate import spike_rate
 
 class DotProduct(ContextPredictor):
     time_per_vl_pt = .02 #(seconds)
-    good_clusters = {1:range(2,8),
-                     2:range(2,8),
-                     3:range(2,14),
-                     4:range(2,7),
-                     5:range(2,12),
+    good_clusters = {1:[2,4,5,6],
+                     2:[2,3,4,5,6],
+                     3:[2,3,4,7,8,10,11],
+                     4:[2,3,6],
+                     5:[2,3,4,5,6,7,8,9,10],
                      6:[2],
                      7:[2,3,4],
                      11:[2],
-                     12:[2,3]}
+                     12:[2]}
     
     def __init__(self, vl, cls,trigger_tm,label_is, room_shape=[[-60,60],[-60,60]], bin_size=8):
         self.vl = vl
