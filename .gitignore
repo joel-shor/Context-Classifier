@@ -4,6 +4,5 @@
 Data/Analysis/cache/*
 .project
 .pydevproject
-*.png
 *.m
 Reference\ Matlab\ Files/*
