@@ -7,6 +7,7 @@ import numpy as np
 import logging
 from matchClToVl import match_cl_to_vl
 from matlabRound import matround
+from cache import try_cache, store_in_cache
 
 
 def spike_loc(cl, vl, trigger_tm, target_cl):
@@ -17,6 +18,11 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
         Note: vl['xs'] and vl['ys'] have repeated values.
             We must return exactly one index for each unique
             location.'''
+    
+    cached_results = try_cache(cl,vl,trigger_tm,target_cl)
+    if cached_results is not None:
+        logging.info('Got spike cluster %i from cache.',target_cl)
+        return cached_results
     
     if target_cl == 1:
         logging.warning('Are you SURE you want to find cluster 1?')
@@ -56,4 +62,6 @@ def spike_loc(cl, vl, trigger_tm, target_cl):
     # Only leave spikes when rat is running faster than 2 in /sec
     spk_i = spk_i[np.nonzero(speed > 2)[0]]
 
+    store_in_cache(cl, vl, trigger_tm, target_cl, spk_i)
+    
     return np.unique(spk_i)

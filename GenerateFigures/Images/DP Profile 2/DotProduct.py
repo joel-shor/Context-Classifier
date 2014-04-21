@@ -12,8 +12,10 @@ import logging
 from Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
+from Data.Analysis.cache import try_cache, store_in_cache
 
 class DotProduct(ContextPredictor):
+    name = 'DP Profile 2'
     time_per_vl_pt = .02 #(seconds)
     good_clusters = {1:range(2,8),
                      2:range(2,8),
@@ -39,6 +41,15 @@ class DotProduct(ContextPredictor):
         # t_cells = [(tetrode, cluster label)]
         # t_cells_spks = [spk_is, spk_is,...]
         self.base_vec, self.t_cells = self._calculate_base_vectors(label_is, trigger_tm)
+        cached = try_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
+                           self.time_per_vl_pt,self.good_clusters)
+        if cached is not None and False:
+            self.base_vec, self.t_cells = cached
+            logging.info('Got base vectors from cache.')
+        else:
+            self.base_vec, self.t_cells = self._calculate_base_vectors(label_is, trigger_tm)
+            store_in_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
+                           self.time_per_vl_pt,self.good_clusters,[self.base_vec,self.t_cells])
     
     def generate_population_vectors(self):
         ''' Return two dictionaries: One with the population vectors, the other

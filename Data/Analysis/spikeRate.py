@@ -4,9 +4,11 @@ Created on Mar 29, 2014
 @author: jshor
 '''
 import numpy as np
-from scipy.ndimage.filters import gaussian_filter
+from scipy.signal import hamming as hamm
+from scipy.signal import convolve2d
 import logging
 
+filt_win_size = 5   # Make it odd!
 time_per_vl_pt = .02 #(seconds)
 
 def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
@@ -62,10 +64,83 @@ def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
     #spks = gaussian_filter(spks,2)
     #times_spent = gaussian_filter(times_spent,2)
     times_spent[np.nonzero(times_spent == 0)] = np.Infinity
+    pre_smooth_rates = spks/times_spent
+    post_smooth_rates = smooth(pre_smooth_rates)
 
-    return spks/times_spent
+    return post_smooth_rates
 
 def place_field(firing_rate,std_devs=5):
     mn = np.average(firing_rate)
     std = np.std(firing_rate)
     return firing_rate > mn+std_devs*std
+
+def hamm_kernel(N):
+    left = hamm(N).reshape([-1,1])
+    right = np.transpose(left)
+    pre_normalized = np.dot(left,right)
+    kern = pre_normalized/np.sum(pre_normalized)
+    return kern
+def inside():
+    corner = np.ones([15,15])
+    for i in range(6):
+        corner[0,i] = 0
+    for i in range(3):
+        corner[1,i] = 0
+    for i in range(2):
+        corner[2,i] = 0
+    for i in range(6):
+        corner[i,0] = 0
+    
+    # Now repeat the corner in all 4 corners
+    mask = corner*np.fliplr(corner)*np.flipud(corner)* \
+            np.fliplr(np.flipud(corner))
+
+    return mask
+def smooth(rates):
+    ''' Apply a filter to smooth rates.
+    
+        Convolve with the filters, then adjust 
+        by the appropriate weight.'''
+    
+    if np.sum(( 1-inside())*rates) != 0:
+        print 'Something is going on outside!'
+        import pdb; pdb.set_trace()
+        import matplotlib.pyplot as plt
+        plt.figure()
+        plt.pcolor((1-inside())*rates)
+        plt.figure()
+        plt.pcolor(inside())
+        plt.show()
+        raise Exception('Something is going on outside!')
+    
+    filt = hamm_kernel(filt_win_size)
+    pre_adjusted_rates = np.real(convolve2d(rates,filt,mode='same'))
+    weight_adjustment = np.real(convolve2d(inside(),filt,mode='same'))
+    
+    # Adjust weight_adjustment so we don't get any division by 0 errors
+    weight_adjustment += 1-inside()
+    
+    adjusted_rates = pre_adjusted_rates*inside()/weight_adjustment
+    
+    '''
+    if np.sum(adjusted_rates) != np.sum(rates):
+        import pdb; pdb.set_trace()
+        print 'Smoothing did not work properly.'
+        #raise Exception('Smoothing did not work properly.')
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.pcolor(rates)
+    plt.colorbar()
+    
+    plt.figure()
+    plt.pcolor(weight_adjustment*inside())
+    plt.colorbar()
+    
+    plt.figure()
+    plt.pcolor(pre_adjusted_rates)
+    plt.colorbar()
+    plt.figure()
+    plt.pcolor(adjusted_rates)
+    plt.colorbar()
+    plt.show()'''
+    return np.real(adjusted_rates)
