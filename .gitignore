@@ -2,3 +2,5 @@
 *.~
 *.mat
 Data/Analysis/cache/*
+.project
+.pydevproject
