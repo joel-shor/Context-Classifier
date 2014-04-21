@@ -1,7 +1,7 @@
 *.pyc
 *.~
 *.mat
-Data/Analysis/cache/*
+Data/Analysis/cache/
 .project
 .pydevproject
 *.png
