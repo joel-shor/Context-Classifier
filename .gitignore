@@ -4,4 +4,5 @@
 Data/Analysis/cache/*
 .project
 .pydevproject
-.png
+*.png
+*.m
