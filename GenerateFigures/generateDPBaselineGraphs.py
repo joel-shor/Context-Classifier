@@ -8,7 +8,7 @@ from itertools import product as pc
 
 from Data.readData import load_mux, load_vl, load_cl
 from matplotlib import pyplot as plt
-from ContextPredictors.DotProduct import DotProduct as Classifier
+from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
 
 def generate_dp_baseline_graphs():
     animal = 66

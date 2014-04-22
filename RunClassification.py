@@ -8,7 +8,7 @@ import numpy as np
 
 from Data.readData import load_mux, load_vl, load_wv, load_cl
 from ContextPredictors.PiecewiseHMM import PiecewiseHMM
-from ContextPredictors.DotProduct import DotProduct as Classifier
+from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

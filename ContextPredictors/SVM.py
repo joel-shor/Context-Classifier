@@ -9,7 +9,7 @@ The Dot Product classifier as described by Jezek, et al (2011)
 import numpy as np
 import logging
 
-from Predictor import ContextPredictor
+from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
 

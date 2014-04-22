@@ -13,7 +13,9 @@ def get_orientation(vl, cntrx, cntry):
     vx = vl['vxs']
     vy = vl['vys']
     cross_product = (x-cntrx)*vy - (y-cntry)*vx
-    return cross_product > 0
+    
+    # Positive cross product means counterclockwise, which is label -1
+    return (cross_product > 0)*2-1
 
 def find_runs(task):
     '''Return an array of indices of when the

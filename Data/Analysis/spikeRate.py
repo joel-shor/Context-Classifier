@@ -127,6 +127,7 @@ def smooth(rates):
         import pdb; pdb.set_trace()
         print 'Smoothing did not work properly.'
         #raise Exception('Smoothing did not work properly.')
+    
     import matplotlib.pyplot as plt
     plt.figure()
     plt.pcolor(rates)

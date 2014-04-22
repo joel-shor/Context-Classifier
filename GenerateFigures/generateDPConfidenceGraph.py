@@ -11,7 +11,7 @@ from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
 from Data.Analysis.cache import try_cache, store_in_cache
 from Data.Analysis.classifyTask import get_orientation
 
-def generate_DP_accuracy_graph():
+def generate_DP_confidence_graph():
     logging.basicConfig(level=logging.DEBUG)
     
     animal = 66
@@ -39,68 +39,56 @@ def generate_DP_accuracy_graph():
                        [classifier,Xs,Ys])'''
     
     # Label based on task
-    '''
+    ''''''
     labels = np.unique(vl['Task'])
     label_is = {contxt: np.nonzero(vl['Task']==contxt)[0] for contxt in labels}
-    label_l = vl['Task']'''
+    label_l = vl['Task']
     
-    ''''''
+    '''
     label_l = get_orientation(vl,cntrx=0,cntry=0)
     labels = np.unique(label_l)
-    label_is = {contxt: np.nonzero(label_l==contxt)[0] for contxt in labels}
+    label_is = {contxt: np.nonzero(label_l==contxt)[0] for contxt in labels}'''
     
     
     classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
     Xs, Ys = classifier.generate_population_vectors(label_l)
     
-    correct_dp = []
-    incorrect_dp = []
+    task0 = []
+    task1 = []
     
     for (xbin,ybin),vecs,lbls in zip(Xs.keys(),Xs.values(),Ys.values()):
         for vec,lbl in zip(vecs,lbls):
+            zero, one = classifier.classifiy(xbin, ybin, vec)
+            if zero == 0 and one == 0: continue
+            nm = np.sqrt(zero**2+one**2)
             if lbl == 0:
-                crct, incrct = classifier.classifiy(xbin, ybin, vec)
+                task0.append((one/nm-.5)*2)
             else:
-                incrct, crct  = classifier.classifiy(xbin, ybin, vec)
-            correct_dp.append(crct)
-            incorrect_dp.append(incrct)
+                task1.append((one/nm-.5)*2)
     
     # Process
-    correct_dp = np.array(correct_dp)
-    incorrect_dp = np.array(incorrect_dp)
-    nonzero_is = (correct_dp > 0) | (incorrect_dp > 0)
-    correct_dp = correct_dp[np.nonzero(nonzero_is)[0]]
-    incorrect_dp = incorrect_dp[np.nonzero(nonzero_is)[0]]
+    task0 = np.array(task0)
+    task1 = np.array(task1)
     
     from matplotlib import pyplot as plt
     
-    # 2d Histogram
-    plt.figure()
-    hist,xedges,yedges = np.histogram2d(correct_dp, incorrect_dp, 150)
-    Xs, Ys = np.meshgrid(xedges, yedges)
-    grph = plt.pcolor(Xs,Ys,hist)
-    plt.xlim([0,xedges[-1]])
-    plt.ylim([0,yedges[-1]])
-    plt.colorbar(grph, extend='both')
-    plt.title('Dot Product Classifier Accuracy')
-    plt.xlabel('Population vector x Correct Template')
-    plt.ylabel('Population vector x Incorrect Template')
+    for vals,name in [(task0,'Context -1'), 
+                      (task1, 'Context 1'),
+                       (np.concatenate([task0,task1]),'Pooled')]:
+        # Accuracy meter
+        plt.figure()
+        plt.hist(vals,normed=True)
+        plt.xlabel('Accuracy')
+        plt.title(classifier.name+ ': '+name)
     
-    # Accuracy meter
-    plt.figure()
-    accuracy = correct_dp / np.sqrt(correct_dp**2+incorrect_dp**2)
-    plt.hist(accuracy,normed=True)
-    plt.xlabel('Accuracy')
-    plt.title(classifier.name)
-
-    msg = []
-    for i in [1,50,75,90,95,99]:
-        perc = 1.0*np.sum(accuracy > i/100.0)/len(accuracy)*100.0
-        msg.append('>%i%%:  %.1f%%'%(i,perc))
-    msg = '\n'.join(msg)
-    plt.xlim([0,1])
-    xcoord = plt.xlim()[0] + (plt.xlim()[1]-plt.xlim()[0])*.1
-    ycoord = plt.ylim()[0] + (plt.ylim()[1]-plt.ylim()[0])*.5
-    plt.text(xcoord,ycoord,msg)
+        msg = []
+        for i in [-75,-50,0,50,75]:
+            perc = 1.0*np.sum(vals > i/100.0)/len(vals)*100.0
+            msg.append('>%i%%:  %.1f%%'%(i,perc))
+        msg = '\n'.join(msg)
+        plt.xlim([-1,1])
+        xcoord = 0
+        ycoord = plt.ylim()[0] + (plt.ylim()[1]-plt.ylim()[0])*.5
+        plt.text(xcoord,ycoord,msg)
     plt.show()
     

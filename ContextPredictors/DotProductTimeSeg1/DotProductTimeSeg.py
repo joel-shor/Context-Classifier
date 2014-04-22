@@ -7,18 +7,19 @@ The Dot Product classifier as described by Jezek, et al (2011)
 '''
 
 import numpy as np
+from scipy import stats
 import logging
 from itertools import product as pr
 
-from Predictor import ContextPredictor
+from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
 from Data.Analysis.cache import try_cache,store_in_cache
 
-class DotProduct(ContextPredictor):
-    name = 'DP Profile 4'
+class DotProductTimeSeg(ContextPredictor):
+    name = 'DP Time Seg Profile 1'
     time_per_vl_pt = .02 #(seconds)
-    good_clusters = {1:range(2,8),
+    '''good_clusters = {1:range(2,8),
                      2:range(2,8),
                      3:range(2,14),
                      4:range(2,7),
@@ -26,7 +27,9 @@ class DotProduct(ContextPredictor):
                      6:[2],
                      7:[2,3,4],
                      11:[2],
-                     12:[2,3]}
+                     12:[2,3]}'''
+    good_clusters = {1:range(2,4)} #Temp
+    min_population_time = 1 #(seconds)
     
     def __init__(self, vl, cls,trigger_tm,label_is, room_shape=[[-60,60],[-60,60]], bin_size=8):
         self.vl = vl
@@ -41,68 +44,95 @@ class DotProduct(ContextPredictor):
         # base_vec[x grid cell, y grid cell, context, cell number]
         # t_cells = [(tetrode, cluster label)]
         # t_cells_spks = [spk_is, spk_is,...]
+        
+        '''
         cached = try_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
-                           self.time_per_vl_pt,self.good_clusters)
+                           self.time_per_vl_pt,self.good_clusters)'''
+        cached = None
         if cached is not None and False:
-            self.base_vec, self.t_cells = cached
+            self.base_vec, self.t_cells, self.means = cached
             logging.info('Got base vectors from cache.')
         else:
-            self.base_vec, self.t_cells = self._calculate_base_vectors(label_is, trigger_tm)
+            self.base_vec, self.t_cells, self.means = self._calculate_base_vectors(label_is, trigger_tm)
             store_in_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
-                           self.time_per_vl_pt,self.good_clusters,[self.base_vec,self.t_cells])
+                           self.time_per_vl_pt,self.good_clusters,
+                           [self.base_vec,self.t_cells, self.means])
     
-    def generate_population_vectors(self):
-        ''' Return two dictionaries: One with the population vectors, the other
-            with the labels.
+    def generate_population_vectors(self, label_l):
+        ''' Return three arrays: One with the population vectors, one with
+            the breakdown of which bin they are in, and the other
+            with the percent of the labels.
             
-            Xs[(xbin,ybin)] = [vec1,vec2,...]
-            Ys[(xbin,ybin)] = [lbl1,lbl2,...] '''
-        # Slice by time in a particular bin
-        Xs = {}
-        Ys = {}
+            Xs[vec num, cell] = [vec1,vec2,..., veci]
+            Bins[vec, binx, biny] = [# of pts in bin]
+            Labels[vec, lbl] = [perc of vec that is labeled by lbl]'''
+        
+        min_i_len = int(self.min_population_time/self.time_per_vl_pt)
+        num_vecs = len(self.vl['xs'])/min_i_len
+        
+        Xs = np.zeros([num_vecs,len(self.t_cells)]) # Activity vectors
+        Bins = np.zeros([num_vecs, self.xbins, self.ybins]) # Number of points in a given bin
+        Labels = np.zeros([num_vecs]) # Percent of first label
         pts_accounted_for = 0
+        pts_tossed = 0
+        
+        # Give points bin labels
+        xbin = np.zeros([len(self.vl['xs'])])
+        ybin = np.zeros([len(self.vl['ys'])])
+        
+        x_check = 0
         for x in range(self.xbins):
             xmin = self.room_shape[0][0]+x*self.bin_size
             xmax = self.room_shape[0][0]+(x+1)*self.bin_size
             in_x_strip = (self.vl['xs'] >= xmin) & (self.vl['xs'] < xmax)
-            for y in range(self.ybins):
-                logging.info('Generating population vector for bin (%i,%i) of %i',x,y, self.xbins)
-                ymin = self.room_shape[1][0]+y*self.bin_size
-                ymax = self.room_shape[1][0]+(y+1)*self.bin_size
-                in_y_strip = (self.vl['ys'] >= ymin) & (self.vl['ys'] < ymax)
-                
-                in_sqr = in_x_strip & in_y_strip
-                start_i = 1+np.nonzero(in_sqr[1:]>in_sqr[:-1])[0]
-                end_i = 1+np.nonzero(in_sqr[:-1]>in_sqr[1:])[0]
-                
-                if in_sqr[0] == 1: start_i = np.concatenate([[0],start_i])
-                if in_sqr[-1] == 1: end_i = np.concatenate([end_i,[len(in_sqr)]])
-                
-                if len(start_i) != len(end_i): 
-                    raise Exception('Indices don\'t align')
-
-                Xs[(x,y)] = np.zeros([len(start_i),len(self.t_cells)])
-                Ys[(x,y)] = np.zeros([len(start_i),1])
-
-                for st, end, k in zip(start_i,end_i,range(len(start_i))):
-                    tm = self.time_per_vl_pt*(end-st)
-                    rate_vec = np.array([np.sum((spks>=st) & (spks<end))/tm for spks in self.t_cells.values()])
+            xbin[in_x_strip] = x
+            x_check += np.sum(in_x_strip)
+        if x_check != len(self.vl['xs']):
+            raise Exception('Xs do not align.')
+        
+        y_check = 0
+        for y in range(self.ybins):
+            logging.info('Generating population vector for bin (%i,%i) of %i',x,y, self.xbins)
+            ymin = self.room_shape[1][0]+y*self.bin_size
+            ymax = self.room_shape[1][0]+(y+1)*self.bin_size
+            in_y_strip = (self.vl['ys'] >= ymin) & (self.vl['ys'] < ymax)
+            ybin[in_y_strip] = y
+            y_check += np.sum(in_y_strip)
+        if y_check != len(self.vl['ys']):
+            raise Exception('Ys do not align.')
+        
+        # Find proportion of time in a particular bin
+        tm_per_seg = min_i_len*self.time_per_vl_pt
+        for i in range(num_vecs):
+            mini = i*min_i_len
+            maxi = (i+1)*min_i_len
+            cur_is = range(mini,maxi)
+            
+            logging.info('Generating population vector %i/%i',i+1,num_vecs)
+            rate_vec = np.array([np.sum((spks>=mini) & (spks<maxi))/tm_per_seg
+                                 for spks in self.t_cells.values()])
+            nm = np.linalg.norm(rate_vec)
+            if nm != 0:
+                rate_vec /= nm
+            Xs[i,:] = rate_vec
+            
+            # Label
+            tru_cntxt = int(stats.mode(label_l[mini:maxi])[0][0])
+            tru_lbl = self.reverse_lbls[tru_cntxt]
+            Labels[i] = tru_lbl
+            
+            logging.info('Finding time spent in each bin for %i/%i',i+1,num_vecs)
+            for x in range(self.xbins):
+                in_cur_x = (xbin[cur_is]==x)
+                if np.sum(in_cur_x) == 0: continue
+                for y in range(self.ybins):
+                    in_cur_y = (ybin[cur_is]==y)
+                    in_cur_cell = (in_cur_x & in_cur_y)
+                    if np.sum(in_cur_cell) == 0: continue
+                    tm = np.sum(in_cur_cell)
+                    Bins[i,x,y] = 1.0*tm/min_i_len
                     
-                    #Normalize
-                    
-                    nm = np.linalg.norm(rate_vec)
-                    if nm != 0:
-                        rate_vec /= nm
-                    
-                    Xs[(x,y)][k,:] = rate_vec
-                    try:
-                        Ys[(x,y)][k] = self.reverse_lbls[np.sign(np.sum(self.vl['Task'][st:end]))]
-                    except:
-                        Ys[(x,y)][k] = np.random.random_integers(0,1)
-                    pts_accounted_for += end-st
-        if pts_accounted_for != len(self.vl['xs']):
-            raise Exception('Some points went missing in ')
-        return Xs, Ys
+        return Xs, Bins, Labels
     
     
     def classifiy(self,xbin,ybin,X):
@@ -145,10 +175,10 @@ class DotProduct(ContextPredictor):
                 base_vec[:,:,self.reverse_lbs[cntxt],cell] = rate
         
         # Calculate mean vector
-        self.means = np.zeros([len(self.labels),len(t_cells)])
+        means = np.zeros([len(self.labels),len(t_cells)])
         for lbl, cell in pr(range(base_vec.shape[2]),range(base_vec.shape[3])):
-            self.means[lbl,cell] = np.mean(base_vec[:,:,lbl,cell])
-        self.means[self.means==0] = np.inf
+            means[lbl,cell] = np.mean(base_vec[:,:,:,cell])
+        means[means==0] = np.inf
         
-        return base_vec, t_cells
+        return base_vec, t_cells, means
                 

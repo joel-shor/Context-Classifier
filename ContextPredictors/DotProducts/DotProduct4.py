@@ -7,18 +7,19 @@ The Dot Product classifier as described by Jezek, et al (2011)
 '''
 
 import numpy as np
+from scipy import stats
 import logging
 from itertools import product as pr
 
-from Predictor import ContextPredictor
+from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
 from Data.Analysis.cache import try_cache,store_in_cache
 
-class DotProductTimeSeg(ContextPredictor):
-    name = 'DP Time Seg Profile 1'
+class DotProduct(ContextPredictor):
+    name = 'DP Profile 4'
     time_per_vl_pt = .02 #(seconds)
-    '''good_clusters = {1:range(2,8),
+    good_clusters = {1:range(2,8),
                      2:range(2,8),
                      3:range(2,14),
                      4:range(2,7),
@@ -26,9 +27,7 @@ class DotProductTimeSeg(ContextPredictor):
                      6:[2],
                      7:[2,3,4],
                      11:[2],
-                     12:[2,3]}'''
-    good_clusters = {1:range(2,4)} #Temp
-    min_population_time = 1 #(seconds)
+                     12:[2,3]}
     
     def __init__(self, vl, cls,trigger_tm,label_is, room_shape=[[-60,60],[-60,60]], bin_size=8):
         self.vl = vl
@@ -38,16 +37,14 @@ class DotProductTimeSeg(ContextPredictor):
         self.xbins = (self.room_shape[0][1]-self.room_shape[0][0])/self.bin_size
         self.ybins = (self.room_shape[1][1]-self.room_shape[1][0])/self.bin_size
         self.labels = label_is.keys()
-        self.reverse_lbs = {lbl:i for i,lbl in zip(range(len(self.labels)),self.labels)}
+        self.reverse_lbls = {lbl:i for i,lbl in zip(range(len(self.labels)),self.labels)}
         
         # base_vec[x grid cell, y grid cell, context, cell number]
         # t_cells = [(tetrode, cluster label)]
         # t_cells_spks = [spk_is, spk_is,...]
-        
-        '''
-        cached = try_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
+        '''cached = try_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
                            self.time_per_vl_pt,self.good_clusters)'''
-        cached = None
+        cached=False
         if cached is not None and False:
             self.base_vec, self.t_cells, self.means = cached
             logging.info('Got base vectors from cache.')
@@ -57,20 +54,16 @@ class DotProductTimeSeg(ContextPredictor):
                            self.time_per_vl_pt,self.good_clusters,
                            [self.base_vec,self.t_cells, self.means])
     
-    def generate_population_vectors(self):
+    def generate_population_vectors(self,label_l):
         ''' Return two dictionaries: One with the population vectors, the other
             with the labels.
             
             Xs[(xbin,ybin)] = [vec1,vec2,...]
             Ys[(xbin,ybin)] = [lbl1,lbl2,...] '''
-        
-        min_i_len = int(self.min_population_time/self.time_per_vl_pt)
-        
         # Slice by time in a particular bin
         Xs = {}
         Ys = {}
         pts_accounted_for = 0
-        pts_tossed = 0
         for x in range(self.xbins):
             xmin = self.room_shape[0][0]+x*self.bin_size
             xmax = self.room_shape[0][0]+(x+1)*self.bin_size
@@ -90,14 +83,6 @@ class DotProductTimeSeg(ContextPredictor):
                 
                 if len(start_i) != len(end_i): 
                     raise Exception('Indices don\'t align')
-                
-                # NEW PART:
-                #  Cut each segment into subsegments of length
-                #  min_i_length
-                tmp = np.array([[range(st,en,min_i_len),range(st+min_i_len,en,min_i_len)] 
-                                for st,en in zip(start_i,end_i) if en-st >= min_i_len])
-
-                import pdb; pdb.set_trace()
 
                 Xs[(x,y)] = np.zeros([len(start_i),len(self.t_cells)])
                 Ys[(x,y)] = np.zeros([len(start_i),1])
@@ -113,12 +98,13 @@ class DotProductTimeSeg(ContextPredictor):
                         rate_vec /= nm
                     
                     Xs[(x,y)][k,:] = rate_vec
-                    try:
-                        Ys[(x,y)][k] = self.reverse_lbls[np.sign(np.sum(self.vl['Task'][st:end]))]
-                    except:
-                        Ys[(x,y)][k] = np.random.random_integers(0,1)
+                    
+                    tru_cntxt = int(stats.mode(label_l[st:end])[0][0])
+                    tru_lbl = self.reverse_lbls[tru_cntxt]
+                    Ys[(x,y)][k] = tru_lbl
+                    
                     pts_accounted_for += end-st
-        if pts_accounted_for+points_tossed != len(self.vl['xs']):
+        if pts_accounted_for != len(self.vl['xs']):
             raise Exception('Some points went missing in ')
         return Xs, Ys
     
@@ -160,13 +146,13 @@ class DotProductTimeSeg(ContextPredictor):
         
         for key, cell in zip(t_cells.keys(),range(len(t_cells))):
             for cntxt, rate in rates[key].items():
-                base_vec[:,:,self.reverse_lbs[cntxt],cell] = rate
+                base_vec[:,:,self.reverse_lbls[cntxt],cell] = rate
         
         # Calculate mean vector
         means = np.zeros([len(self.labels),len(t_cells)])
         for lbl, cell in pr(range(base_vec.shape[2]),range(base_vec.shape[3])):
-            means[lbl,cell] = np.mean(base_vec[:,:,:,cell])
+            means[lbl,cell] = np.mean(base_vec[:,:,lbl,cell])
         means[means==0] = np.inf
         
-        return base_vec, t_cells, self.means
+        return base_vec, t_cells, means
                 

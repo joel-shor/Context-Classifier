@@ -7,7 +7,7 @@ from Data.Analysis.countAngle import count_angle
 
 def generate_angle_graphs():
     animal = 66
-    session = 60 # This is August 7, 2013 run
+    session = 76
     room_shape = [[-60,60],[-60,60]]
     
     fn, _ = load_mux(animal, session)

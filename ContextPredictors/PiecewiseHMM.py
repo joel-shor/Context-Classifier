@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.hmm import GaussianHMM
 import logging
 
-from Predictor import ContextPredictor
+from ContextPredictors.Predictor import ContextPredictor
 
 POS_PTS_PER_CELL = 1000.0
 SIZE_OF_CELL = 0

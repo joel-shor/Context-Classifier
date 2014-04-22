@@ -7,25 +7,28 @@ The Dot Product classifier as described by Jezek, et al (2011)
 '''
 
 import numpy as np
+from scipy import stats
 import logging
 
-from Predictor import ContextPredictor
+from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
-from Data.Analysis.cache import try_cache, store_in_cache
+from Data.Analysis.cache import try_cache,store_in_cache
 
 class DotProduct(ContextPredictor):
-    name = 'DP Profile 2'
+    name = 'DP Profile 1'
     time_per_vl_pt = .02 #(seconds)
-    good_clusters = {1:range(2,8),
-                     2:range(2,8),
-                     3:range(2,14),
-                     4:range(2,7),
-                     5:range(2,12),
+    '''
+    good_clusters = {1:[2,4,5,6],
+                     2:[2,3,4,5,6],
+                     3:[2,3,4,7,8,10,11],
+                     4:[2,3,6],
+                     5:[2,3,4,5,6,7,8,9,10],
                      6:[2],
                      7:[2,3,4],
                      11:[2],
-                     12:[2,3]}
+                     12:[2]}'''
+    good_clusters = {1:[2]}
     
     def __init__(self, vl, cls,trigger_tm,label_is, room_shape=[[-60,60],[-60,60]], bin_size=8):
         self.vl = vl
@@ -35,12 +38,11 @@ class DotProduct(ContextPredictor):
         self.xbins = (self.room_shape[0][1]-self.room_shape[0][0])/self.bin_size
         self.ybins = (self.room_shape[1][1]-self.room_shape[1][0])/self.bin_size
         self.labels = label_is.keys()
-        self.reverse_lbs = {lbl:i for i,lbl in zip(range(len(self.labels)),self.labels)}
+        self.reverse_lbls = {lbl:i for i,lbl in zip(range(len(self.labels)),self.labels)}
         
         # base_vec[x grid cell, y grid cell, context, cell number]
         # t_cells = [(tetrode, cluster label)]
         # t_cells_spks = [spk_is, spk_is,...]
-        self.base_vec, self.t_cells = self._calculate_base_vectors(label_is, trigger_tm)
         cached = try_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
                            self.time_per_vl_pt,self.good_clusters)
         if cached is not None and False:
@@ -51,7 +53,7 @@ class DotProduct(ContextPredictor):
             store_in_cache(vl,cls,trigger_tm,label_is,room_shape,bin_size,self.name,
                            self.time_per_vl_pt,self.good_clusters,[self.base_vec,self.t_cells])
     
-    def generate_population_vectors(self):
+    def generate_population_vectors(self, label_l):
         ''' Return two dictionaries: One with the population vectors, the other
             with the labels.
             
@@ -95,10 +97,11 @@ class DotProduct(ContextPredictor):
                         rate_vec /= nm
                     
                     Xs[(x,y)][k,:] = rate_vec
-                    try:
-                        Ys[(x,y)][k] = self.reverse_lbls[np.sign(np.sum(self.vl['Task'][st:end]))]
-                    except:
-                        Ys[(x,y)][k] = np.random.random_integers(0,1)
+
+                    tru_cntxt = int(stats.mode(label_l[st:end])[0][0])
+                    tru_lbl = self.reverse_lbls[tru_cntxt]
+                    Ys[(x,y)][k] = tru_lbl
+
                     pts_accounted_for += end-st
         if pts_accounted_for != len(self.vl['xs']):
             raise Exception('Some points went missing in ')
@@ -141,6 +144,6 @@ class DotProduct(ContextPredictor):
         
         for key, cell in zip(t_cells.keys(),range(len(t_cells))):
             for cntxt, rate in rates[key].items():
-                base_vec[:,:,self.reverse_lbs[cntxt],cell] = rate
+                base_vec[:,:,self.reverse_lbls[cntxt],cell] = rate
         return base_vec, t_cells
                 

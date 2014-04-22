@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-from ContextPredictors.DotProductTimeSeg import DotProductTimeSeg as Classifier
+from ContextPredictors.DotProductTimeSeg1.DotProductTimeSeg import DotProductTimeSeg as Classifier
 from Data.Analysis.cache import try_cache, store_in_cache
 
 def generate_DPTimeSeg_accuracy_graph():
@@ -20,37 +20,44 @@ def generate_DPTimeSeg_accuracy_graph():
     vl = load_vl(animal,fn)
     cls = {tetrode:load_cl(animal,fn,tetrode) for tetrode in range(1,17)}
     
-    import pdb; pdb.set_trace()
-    
     room_shape = [[-60,60],[-60,60]]
     bin_size = 8
     # Actual Contexts
     labels = np.unique(vl['Task'])
     label_is = {contxt: np.nonzero(vl['Task']==contxt)[0] for contxt in labels}
     
-    cached = try_cache(Classifier,Classifier.name,vl,cls,trigger_tm,label_is,room_shape,bin_size)
+    '''cached = try_cache(Classifier,Classifier.name,vl,cls,trigger_tm,label_is,room_shape,bin_size)
+    '''
+    cached = None
     if cached is not None:
         classifier, Xs, Ys = cached
         logging.info('Got classifier and population vectors from cache.')
     else:
         classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
-        Xs, Ys = classifier.generate_population_vectors()
+        Xs, Bins, Labels = classifier.generate_population_vectors()
         store_in_cache(Classifier,Classifier.name,vl,cls,trigger_tm,label_is,room_shape,bin_size,
                        [classifier,Xs,Ys])
-    #classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
-    #Xs, Ys = classifier.generate_population_vectors()
     
     correct_dp = []
     incorrect_dp = []
     
-    for (xbin,ybin),vecs,lbls in zip(Xs.keys(),Xs.values(),Ys.values()):
-        for vec,lbl in zip(vecs,lbls):
-            if lbl == 0:
-                crct, incrct = classifier.classifiy(xbin, ybin, vec)
-            else:
-                incrct, crct  = classifier.classifiy(xbin, ybin, vec)
-            correct_dp.append(crct)
-            incorrect_dp.append(incrct)
+    for i in range(Xs.shape[0]):
+        logging.info('Classifying population vector %i/%i',i+1,Xs.shape[0])
+        vec = Xs[i,:]
+        lbl = Labels[i]
+        crct = incrct = 0
+        for xbin in range(Bins.shape[1]):
+            for ybin in range(Bins.shape[2]):
+                if Bins[i,xbin,ybin] != 0:
+                    if lbl == 0:
+                        tmp_crct, tmp_incrt = classifier.classifiy(xbin, ybin, vec)
+                    else:
+                        tmp_incrt, tmp_crct  = classifier.classifiy(xbin, ybin, vec)
+                    crct += Bins[i,xbin,ybin] * tmp_crct
+                    incrct += Bins[i,xbin,ybin] * tmp_incrt
+                    
+        correct_dp.append(crct)
+        incorrect_dp.append(incrct)
     
     # Process
     correct_dp = np.array(correct_dp)
