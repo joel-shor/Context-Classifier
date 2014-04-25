@@ -122,7 +122,7 @@ def smooth(rates):
     
     adjusted_rates = pre_adjusted_rates*inside()/weight_adjustment
     
-    '''
+    ''''''
     if np.sum(adjusted_rates) != np.sum(rates):
         import pdb; pdb.set_trace()
         print 'Smoothing did not work properly.'
@@ -143,5 +143,5 @@ def smooth(rates):
     plt.figure()
     plt.pcolor(adjusted_rates)
     plt.colorbar()
-    plt.show()'''
+    plt.show()
     return np.real(adjusted_rates)

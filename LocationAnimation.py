@@ -13,8 +13,8 @@ import logging
 
 from Data.readData import load_mux, load_vl, load_wv, load_cl
 from Data.Analysis.matchClToVl import match_cl_to_vl
-from ContextPredictors.PiecewiseHMM import PiecewiseHMM
-from ContextPredictors.DotProduct import DotProduct
+#from ContextPredictors.PiecewiseHMM import PiecewiseHMM
+#from ContextPredictors.DotProduct import DotProduct
 
 timeout_rate = 15
 animation_step_size = 10
