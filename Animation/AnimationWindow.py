@@ -41,11 +41,11 @@ class MainWin:
     
     def update(self):
         
-        xs,ys,vxs,vys = self.ER.read(iteration=self.iter_num)
-        signal, spks = self.WR.read(iteration=self.iter_num)
+        if self.ER: xs,ys,vxs,vys = self.ER.read(iteration=self.iter_num)
+        if self.WR: signal, spks = self.WR.read(iteration=self.iter_num)
         
-        self.ER.draw(xs,ys,vxs,vys)
-        self.WR.draw(signal, spks)
+        if self.ER: self.ER.draw(xs,ys,vxs,vys)
+        if self.WR: self.WR.draw(signal, spks)
         
         self.iter_num += self.step
         

@@ -14,8 +14,8 @@ from spikeRateGraph import plot_rates
 import numpy as np
 
 def generate_spike_rate_graphs():
-    animal = 66
-    session = 60 # This is August 7, 2013 run
+    animal = 68
+    session = 18
     room_shape = [[-60,60],[-60,60]]
     
     # Jezek uses 2cm x 2cm

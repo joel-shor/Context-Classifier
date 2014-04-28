@@ -25,7 +25,10 @@ def load_cl(animal, fn, tetrode):
      '''
     clpath = join(dat_base,'Data Files','Clusters','clusters%s'%(animal,),fn)
     tmp = loadmat(clpath+'.cmb.%i.mat'%(tetrode,))
-    dt = datetime.strptime(tmp['__header__'][50:],'%a %b %d %H:%M:%S %Y')
+    try:
+        dt = datetime.strptime(tmp['__header__'][50:],'%a %b %d %H:%M:%S %Y')
+    except:
+        dt = None
     
     return {'Datetime': dt, 
             'Time': np.array(tmp['clust'][0,0][0]), 
@@ -71,8 +74,14 @@ def load_vl(animal, fn):
     vxs = tmp['virmenLog'][0,0][2][0]
     vys = tmp['virmenLog'][0,0][2][1]
     
+    
+    if len(tmp['virmenLog'][0,0][3]) != 2:
+        raise Exception('Not a task trial.')
+    tt = tmp['virmenLog'][0,0]
+
     txs = tmp['virmenLog'][0,0][3][0]
     tys = tmp['virmenLog'][0,0][3][1]
+
     task_clockwiseness = tmp['virmenLog'][0,0][4][0]
 
     iteration_time = np.ravel(tmp['virmenLog'][0,0][-1][0,0][0])

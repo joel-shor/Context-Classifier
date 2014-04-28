@@ -5,17 +5,30 @@ Created on Mar 23, 2014
 '''
 import numpy as np
 
+def _l2(v1,v2):
+    return np.sqrt(v1**2+v2**2)
+
 def get_orientation(vl, cntrx, cntry):
     ''' Returns an array classifying which task the rat
-        is performing based on environment data. '''
+        is performing based on environment data. 
+        
+        1 is clockwise, -1 is counterclockwise, in accordance
+            with vl['Task'] 
+        
+        0 means angle is within 15 degrees of radial.'''
     x = vl['xs']
     y = vl['ys']
+    #xmag = np.array([np.linalg.norm([xi,yi]) for xi,yi in zip(x,y)])
     vx = vl['vxs']
     vy = vl['vys']
     cross_product = (x-cntrx)*vy - (y-cntry)*vx
     
+    radial_thresh = 15 # degrees
+    sin_thresh = np.sin(radial_thresh*np.pi/180.0)
+    not_radial = (np.abs(cross_product) > sin_thresh*_l2(x,y)*_l2(vx,vy))
+    
     # Positive cross product means counterclockwise, which is label -1
-    return (cross_product > 0)*2-1
+    return ((cross_product > 0)*2-1)*not_radial
 
 def find_runs(task):
     '''Return an array of indices of when the

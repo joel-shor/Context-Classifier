@@ -1,14 +1,23 @@
+from Data.Analysis.findAmbiguousData import find_ambiguous_data
+
 from matplotlib import pyplot as plt
 from Data.readData import load_mux, load_vl
 from Data.Analysis.classifyTask import *
 
-num = 66
-session = 60
+amb = find_ambiguous_data()
 
-fn, _= load_mux(num,session)
-vl = load_vl(num,fn)
-task = get_orientation(vl,0,0)
-sgn, run_len = find_runs(task)
+for animal in amb.keys():
+    for session in amb[animal]:
+        if amb[animal][session] is not None: continue
+        try:
+            fn, _= load_mux(animal,session)
+            print 'Animal:%i    Fn:%s'%(animal,fn)
+            vl = load_vl(animal,fn)
+        except Exception as e:
+            print e
+            import pdb; pdb.set_trace()
+
+import sys; sys.exit()
 
 ns,bins, _ = plt.hist(run_len,bins=range(1,np.max(run_len)+1))
 plt.title('Run length')

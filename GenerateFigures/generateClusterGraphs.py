@@ -36,14 +36,14 @@ def plot_spks(vl, spk_i, wanted_cl):
             labelleft='off') # labels along the bottom edge are off
 
 def generate_cluster_graphs():
-    animal = 66
-    session = 60 # This is August 7, 2013 run
+    animal = 68
+    session = 18
     
     # Filenames (fn) are named descriptively:
     # session 18:14:04 on day 10/25/2013
     # load virmenLog75\20131025T181404.cmb.mat
     
-    for tetrode in range(1,2):  
+    for tetrode in range(1,17):  
         for context in [1,-1]:
             global clrs
             clrs = ['b','g','r','c','m','k','b','g','r','c','m','k']
@@ -54,7 +54,8 @@ def generate_cluster_graphs():
         
             spk_is = []
             for wanted_cl in range(2,100):
-                spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
+                cache_key = (cl,vl,trigger_tm,animal,session,tetrode,wanted_cl)
+                spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl,cache_key)
                 if spk_i is np.NAN: break
                 cntx_is = np.nonzero(vl['Task']==context)[0]
                 spk_i = np.intersect1d(cntx_is, spk_i)
@@ -62,7 +63,6 @@ def generate_cluster_graphs():
     
             tot_spks = len(spk_is)
             subp_x, subp_y = get_subplot_size(tot_spks)
-            print subp_x, subp_y
             plt.figure()
             for spk_i, i in zip(spk_is, range(tot_spks)):
                 plt.subplot(subp_x,subp_y, i+1)
@@ -70,7 +70,7 @@ def generate_cluster_graphs():
             plt.suptitle('Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
             #plt.suptitle('Animal %i, Tetrode %i, Session %i'%(animal,tetrode,session))
             
-            #plt.show()
-            plt.savefig('GenerateFigures/Images/Context Spike Location/Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
+            plt.show()
+            #plt.savefig('GenerateFigures/Images/Context Spike Location/Animal %i, Tetrode %i, Session %i, Context:%i'%(animal,tetrode,session,context))
 
     

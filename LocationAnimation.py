@@ -24,7 +24,7 @@ if __name__ == '__main__':
     
     room_shape = [[-60,60],[-60,60]]
     animal = 66
-    session = 60 # This is August 7, 2013 run
+    session = 60
     tetrode=3
     
     
