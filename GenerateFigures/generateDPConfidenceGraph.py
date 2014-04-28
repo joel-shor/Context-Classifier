@@ -12,7 +12,6 @@ from Data.Analysis.cache import try_cache, store_in_cache
 from Data.Analysis.classifyTask import get_orientation
 
 def generate_DP_confidence_graph():
-    logging.basicConfig(level=logging.DEBUG)
     
     animal = 66
     session = 60 # This is August 7, 2013 run

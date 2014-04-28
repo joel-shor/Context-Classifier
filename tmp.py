@@ -1,3 +1,12 @@
+
+a = {}
+def b(a):
+    a[1] = 2
+
+b(a)
+print a
+import sys; sys.exit()
+
 from Data.Analysis.findAmbiguousData import find_ambiguous_data
 
 from matplotlib import pyplot as plt

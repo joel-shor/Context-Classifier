@@ -54,11 +54,15 @@ def mk_grph(animal,session):
     plt.title('Animal:%i  Session:%i Filename:%s'%(animal,session, fn))
 
 def generate_angle_graphs():
-    
+    animal = 66
+    session = 60
+    mk_grph(animal,session)
+    plt.show()
+    '''
     amb = find_ambiguous_data()
     for animal in amb.keys():
         for session in amb[animal].keys():
             if amb[animal][session] is None: continue
             #if animal == 66: continue # He's too good!
             mk_grph(animal,session)
-        plt.show()
+        plt.show()'''

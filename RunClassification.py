@@ -9,7 +9,7 @@ import numpy as np
 from Data.readData import load_mux, load_vl, load_cl
 from Data.Analysis.getClusters import spike_loc
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
-from ContextPredictors.GeneratePopulationVectors.BySpace import generate_population_vectors as gpv
+from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
 
 good_clusters = {1:range(2,8),
                  2:range(2,8),
@@ -28,7 +28,7 @@ def count_cells(vl,cls,trigger_tm,good_clusters):
         if tetrode not in good_clusters: continue
         for cell in good_clusters[tetrode]:
             logging.info('Finding spike locations for tetrode %i, cell %i',tetrode,cell)
-            cache_key = (cl['Label'][::10],vl['xs'][::10],trigger_tm,cell,)
+            cache_key = (cl['Label'][::10],vl['xs'][::10],trigger_tm,cell)
             spk_i = spike_loc(cl, vl, trigger_tm, cell, cache_key)
             if spk_i is np.NAN: break
             t_cells[(tetrode,cell)] = spk_i
@@ -56,24 +56,20 @@ if __name__ == '__main__':
     
     t_cells = count_cells(vl,cls,trigger_tm,good_clusters)
     
-    X, y = gpv(vl, t_cells, room_shape, bin_size, label_l, K=32)
+    X, Y = gpv(vl, t_cells, room_shape, bin_size, label_l, K=32)
     
-    import pdb; pdb.set_trace()
-    
-    classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
-    Xs, Ys = classifier.generate_population_vectors(vl['Task'])
+    classifier = Classifier(X,Y)
     
     correct_dp = []
     incorrect_dp = []
     
-    for (xbin,ybin),vecs,lbls in zip(Xs.keys(),Xs.values(),Ys.values()):
-        for vec,lbl in zip(vecs,lbls):
-            if lbl == 0:
-                crct, incrct = classifier.classifiy(xbin, ybin, vec)
-            else:
-                incrct, crct  = classifier.classifiy(xbin, ybin, vec)
-            correct_dp.append(crct)
-            incorrect_dp.append(incrct)
+    for i in range(len(Y)):
+        sbin = X[i,-1]
+        x = X[i,:-1]
+        y = Y[i,0]
+        result = classifier.classify(sbin,x)
+        correct_dp.append(result[y])
+        incorrect_dp.append(result[-1*y])
     
     # Process
     correct_dp = np.array(correct_dp)
@@ -86,7 +82,7 @@ if __name__ == '__main__':
     hist,xedges,yedges = np.histogram2d(correct_dp, incorrect_dp, 300)
     
     Xs, Ys = np.meshgrid(xedges, yedges)
-    import pdb; pdb.set_trace()
+
     grph = plt.pcolor(Xs,Ys,hist)
     plt.colorbar(grph, extend='both')
     plt.figure()

@@ -5,97 +5,42 @@ Created on Apr 11, 2014
 '''
 import logging
 import numpy as np
+from matplotlib import pyplot as plt
 
-from Data.readData import load_mux, load_vl, load_cl
-from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
-from Data.Analysis.cache import try_cache, store_in_cache
-from Data.Analysis.classifyTask import get_orientation
+from ContextPredictors.checkClassifier import check_classifier
+from ContextPredictors.DotProducts.DotProduct1 import DotProduct as CL1
+from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL2
+from ContextPredictors.DotProducts.DotProduct3 import DotProduct as CL3
+from ContextPredictors.GeneratePopulationVectors.goodClusters import get_good_clusters
+
+time_per_vl_pt = .02 #(seconds)
+
 
 def generate_DP_accuracy_graph():
-    logging.basicConfig(level=logging.DEBUG)
     
     animal = 66
-    session = 60 # This is August 7, 2013 run
+    session = 60 
     
-    fn, trigger_tm = load_mux(animal, session)
-    vl = load_vl(animal,fn)
-    cls = {tetrode:load_cl(animal,fn,tetrode) for tetrode in range(1,17)}
-    
-    
-    room_shape = [[-60,60],[-60,60]]
     bin_size = 8
-    # Actual Contexts
+    K = 100 # Segment length used to calculate firing rates
+    cluster_profile = 0
+    label = 'Task'
     
-    
-    '''
-    cached = try_cache(Classifier,Classifier.name,vl,cls,trigger_tm,label_is,room_shape,bin_size)
-    if cached is not None:
-        classifier, Xs, Ys = cached
-        logging.info('Got classifier and population vectors from cache.')
-    else:
-        classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
-        Xs, Ys = classifier.generate_population_vectors()
-        store_in_cache(Classifier,Classifier.name,vl,cls,trigger_tm,label_is,room_shape,bin_size,
-                       [classifier,Xs,Ys])'''
-    
-    # Label based on task
-    '''
-    labels = np.unique(vl['Task'])
-    label_is = {contxt: np.nonzero(vl['Task']==contxt)[0] for contxt in labels}
-    label_l = vl['Task']'''
-    
-    ''''''
-    label_l = get_orientation(vl,cntrx=0,cntry=0)
-    labels = np.unique(label_l)
-    label_is = {contxt: np.nonzero(label_l==contxt)[0] for contxt in labels}
-    
-    
-    classifier = Classifier(vl,cls,trigger_tm, label_is, room_shape, bin_size)
-    Xs, Ys = classifier.generate_population_vectors(label_l)
-    
-    correct_dp = []
-    incorrect_dp = []
-    
-    for (xbin,ybin),vecs,lbls in zip(Xs.keys(),Xs.values(),Ys.values()):
-        for vec,lbl in zip(vecs,lbls):
-            if lbl == 0:
-                crct, incrct = classifier.classifiy(xbin, ybin, vec)
-            else:
-                incrct, crct  = classifier.classifiy(xbin, ybin, vec)
-            correct_dp.append(crct)
-            incorrect_dp.append(incrct)
-    
-    # Process
-    correct_dp = np.array(correct_dp)
-    incorrect_dp = np.array(incorrect_dp)
-    nonzero_is = (correct_dp > 0) | (incorrect_dp > 0)
-    correct_dp = correct_dp[np.nonzero(nonzero_is)[0]]
-    incorrect_dp = incorrect_dp[np.nonzero(nonzero_is)[0]]
-    
-    from matplotlib import pyplot as plt
-    
-    # 2d Histogram
-    plt.figure()
-    hist,xedges,yedges = np.histogram2d(correct_dp, incorrect_dp, 150)
-    Xs, Ys = np.meshgrid(xedges, yedges)
-    grph = plt.pcolor(Xs,Ys,hist)
-    plt.xlim([0,xedges[-1]])
-    plt.ylim([0,yedges[-1]])
-    plt.colorbar(grph, extend='both')
-    plt.title('Dot Product Classifier Accuracy')
-    plt.xlabel('Population vector x Correct Template')
-    plt.ylabel('Population vector x Incorrect Template')
+    cl_prof_name, good_clusters = get_good_clusters(cluster_profile)
+    correct_dp = check_classifier(CL1, good_clusters, label, K, 
+                                  bin_size, animal, session)
     
     # Accuracy meter
     plt.figure()
-    accuracy = correct_dp / np.sqrt(correct_dp**2+incorrect_dp**2)
-    plt.hist(accuracy,normed=True)
+    plt.hist(correct_dp,normed=True)
     plt.xlabel('Accuracy')
-    plt.title(classifier.name)
+    tt = '%s, BinS: %i, K: %i, ClPr: %s, Label:%s'%(CL1.name,bin_size,K,cl_prof_name,
+                                                   label)
+    plt.title(tt)
 
     msg = []
     for i in [1,50,75,90,95,99]:
-        perc = 1.0*np.sum(accuracy > i/100.0)/len(accuracy)*100.0
+        perc = 1.0*np.sum(correct_dp > i/100.0)/len(correct_dp)*100.0
         msg.append('>%i%%:  %.1f%%'%(i,perc))
     msg = '\n'.join(msg)
     plt.xlim([0,1])
