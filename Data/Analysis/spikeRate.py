@@ -8,10 +8,13 @@ from scipy.signal import hamming as hamm
 from scipy.signal import convolve2d
 import logging
 
-filt_win_size = 5   # Make it odd!
+from Data.findInside import cache_inside_mask
+from Data.Analysis.cache import try_cache
+
+filt_win_ratio = 1.0/3   # Make it odd!
 time_per_vl_pt = .02 #(seconds)
 
-def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
+def spike_rate(room_shape, vl, spk_i, bin_size,valid=None):
     ''' Returns a matrix corresponding to the spike rate in the (i,j)th spatial bin. '''
     
     # Valid is a list of indices that are valid. We want an array with 1 in valid
@@ -27,13 +30,12 @@ def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
     [[xmin,xmax],[ymin,ymax]] = room_shape
     if (xmax-xmin)%bin_size != 0 or (ymax-ymin)%bin_size != 0:
         raise Exception('Bin size is not compatible with room size.')
+    xbinsz = (xmax-xmin)/bin_size
+    ybinsz = (ymax-ymin)/bin_size
+    spks = np.zeros([xbinsz,ybinsz])
+    times_spent = np.zeros([xbinsz,ybinsz])
     
-    spks = np.zeros([(xmax-xmin)/bin_size,
-                      (ymax-ymin)/bin_size])
-    times_spent = np.zeros([(xmax-xmin)/bin_size,
-                           (ymax-ymin)/bin_size])
-    
-    for xbin in range(spks.shape[0]):
+    for xbin in range(xbinsz):
         
         xstart = xmin+xbin*bin_size
         xend = xmin+(xbin+1)*bin_size
@@ -42,7 +44,7 @@ def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
         
         x_strip_time = (vl['xs'] >= xstart) & (vl['xs'] < xend) & valid
         
-        for ybin in range(spks.shape[1]):
+        for ybin in range(ybinsz):
             
             ystart = ymin+(ybin)*bin_size
             yend = ymin+(ybin+1)*bin_size
@@ -51,10 +53,10 @@ def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
             
             y_strip_time = (vl['ys'] >= ystart) & (vl['ys'] < yend) & valid
             
-            pts = np.sum(np.logical_and(x_strip_time,y_strip_time))
+            pts = np.sum(x_strip_time & y_strip_time)
             times_spent[xbin,ybin] = pts*time_per_vl_pt
             
-            spk_cnt = np.sum(np.logical_and(x_strip_spks,y_strip_spks))
+            spk_cnt = np.sum(x_strip_spks & y_strip_spks)
             spks[xbin,ybin] = 1.0*spk_cnt
             
             if spk_cnt > pts:
@@ -65,7 +67,8 @@ def spike_rate(room_shape, vl, spk_i, bin_size=4,valid=None):
     #times_spent = gaussian_filter(times_spent,2)
     times_spent[np.nonzero(times_spent == 0)] = np.Infinity
     pre_smooth_rates = spks/times_spent
-    post_smooth_rates = smooth(pre_smooth_rates)
+    
+    post_smooth_rates = smooth(pre_smooth_rates,bin_size, room_shape)
 
     return post_smooth_rates
 
@@ -80,47 +83,50 @@ def hamm_kernel(N):
     pre_normalized = np.dot(left,right)
     kern = pre_normalized/np.sum(pre_normalized)
     return kern
-def inside():
-    corner = np.ones([15,15])
-    for i in range(6):
-        corner[0,i] = 0
-    for i in range(3):
-        corner[1,i] = 0
-    for i in range(2):
-        corner[2,i] = 0
-    for i in range(6):
-        corner[i,0] = 0
-    
-    # Now repeat the corner in all 4 corners
-    mask = corner*np.fliplr(corner)*np.flipud(corner)* \
-            np.fliplr(np.flipud(corner))
+
+def inside(bin_size, room_shape):
+    ''' The environment is split into NxN bins. '''
+    cache_key = (bin_size, room_shape, 'Inside mask')
+    mask = try_cache(cache_key)
+    if mask is None:
+        logging.info('Inside mask for bin side %i not cached. Computing...',bin_size)
+        mask = cache_inside_mask(bin_size, room_shape)
+        mask = try_cache(bin_size, room_shape, 'Inside mask')
 
     return mask
-def smooth(rates):
+
+def smooth(rates,bin_size, room_shape):
     ''' Apply a filter to smooth rates.
     
         Convolve with the filters, then adjust 
         by the appropriate weight.'''
     
-    if np.sum(( 1-inside())*rates) != 0:
+    assert (room_shape[0][1]-room_shape[0][0])%bin_size==0
+    assert (room_shape[1][1]-room_shape[1][0])%bin_size==0
+    
+    bin_len = (room_shape[0][1]-room_shape[0][0])/bin_size
+    
+    ins_mask = inside(bin_size,room_shape)
+    
+    if np.sum(( 1-ins_mask)*rates) != 0:
         print 'Something is going on outside!'
         import pdb; pdb.set_trace()
         import matplotlib.pyplot as plt
         plt.figure()
-        plt.pcolor((1-inside())*rates)
+        plt.pcolor((1-ins_mask)*rates)
         plt.figure()
-        plt.pcolor(inside())
+        plt.pcolor(ins_mask)
         plt.show()
         raise Exception('Something is going on outside!')
     
-    filt = hamm_kernel(filt_win_size)
+    filt = hamm_kernel(int(round(filt_win_ratio*bin_len,0)))
     pre_adjusted_rates = np.real(convolve2d(rates,filt,mode='same'))
-    weight_adjustment = np.real(convolve2d(inside(),filt,mode='same'))
+    weight_adjustment = np.real(convolve2d(ins_mask,filt,mode='same'))
     
     # Adjust weight_adjustment so we don't get any division by 0 errors
-    weight_adjustment += 1-inside()
+    weight_adjustment += 1-ins_mask
     
-    adjusted_rates = pre_adjusted_rates*inside()/weight_adjustment
+    adjusted_rates = pre_adjusted_rates*ins_mask/weight_adjustment
     
     '''
     if np.sum(adjusted_rates) != np.sum(rates):
@@ -134,7 +140,7 @@ def smooth(rates):
     plt.colorbar()
     
     plt.figure()
-    plt.pcolor(weight_adjustment*inside())
+    plt.pcolor(weight_adjustment*inside(binsz))
     plt.colorbar()
     
     plt.figure()
@@ -145,3 +151,9 @@ def smooth(rates):
     plt.colorbar()
     plt.show()'''
     return np.real(adjusted_rates)
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    #import pdb; pdb.set_trace()
+    plt.pcolor(inside(120/8))
+    plt.show()

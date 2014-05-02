@@ -33,7 +33,7 @@ def spike_loc(cl, vl, trigger_tm, target_cl,key=None):
     # If target_cl is None, then find the iterations for everything
     st = cl['Time'][cl['Label']==target_cl]
     if st.shape == (0,):
-        logging.warning('No clusters with label %i. Quitting...', target_cl)
+        logging.info('No clusters with label %i. Quitting...', target_cl)
         return np.NAN
     
     # Ask user if he wants to waste time on an excessively large dataset

@@ -5,7 +5,8 @@ class MainWin:
     ''' Object which updates the environment and waveform windows. '''
     
     def __init__(self, step):
-        self.iter_num = 0
+        #self.iter_num = 0
+        self.iter_num = 58000
         self.step = step
         self.ER = None
         self.WR = None
@@ -49,4 +50,7 @@ class MainWin:
         
         self.iter_num += self.step
         
-        return True
+        if self.iter_num > 60000:
+            return False
+        else:
+            return True

@@ -14,8 +14,8 @@ from spikeRateGraph import plot_rates
 import numpy as np
 
 def generate_spike_rate_graphs():
-    animal = 68
-    session = 18
+    animal = 70
+    session = 8
     room_shape = [[-60,60],[-60,60]]
     
     # Jezek uses 2cm x 2cm
@@ -29,13 +29,14 @@ def generate_spike_rate_graphs():
     
     contxt_is = {cntxt:np.nonzero(vl['Task']==cntxt)[0] for cntxt in np.unique(vl['Task'])}
     
-    for tetrode in range(1,16):
+    for tetrode in range(1,17):
         spks = {}
         cl = load_cl(animal,fn,tetrode)
         
-        for wanted_cl in range(2,20):
+        for wanted_cl in range(2,100):
             logging.info('Finding spike locations for cell %i, tetrode %i',wanted_cl,tetrode)
-            spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl)
+            cache_key = (cl['Label'][::10],vl['xs'][::10],trigger_tm,wanted_cl, animal, session)
+            spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl,cache_key)
             if spk_i is np.NAN: break
             spks[wanted_cl] = {}
             for contxt in contxt_is.keys():
@@ -55,12 +56,13 @@ def generate_spike_rate_graphs():
             #plot_rates(Xs,Ys,place_field(rates),i+2)
 
         for contxt in contxt_is.keys():
+            if len(rate_dict[contxt]) == 0: continue
             plt.figure('contour')
             plt.clf()
-            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,1'%(animal,tetrode,session,contxt))
+            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Bin size %i, Session %i, Context %i,1'%(animal,tetrode,bin_size,session,contxt))
             plt.figure('pcolor')
             plt.clf()
-            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,2'%(animal,tetrode,session,contxt))
+            plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Bin size %i, Session %i, Context %i,2'%(animal,tetrode,bin_size,session,contxt))
      
             for clusters, rates in rate_dict[contxt].items():
                 plot_rates(room_shape, tot_spks, bin_size, rates,clusters)
@@ -68,7 +70,6 @@ def generate_spike_rate_graphs():
             #plt.show()
             ''''''
             plt.figure('contour')
-            plt.savefig('GenerateFigures/Images/Context Spike Rates/Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,1'%(animal,tetrode,session,contxt))
+            plt.savefig('GenerateFigures/Images/Context Spike Rates/Animal %i/Bin size %i/Type 1/Tetrode %i, Session %i, Context %i'%(animal,bin_size,tetrode,session,contxt))
             plt.figure('pcolor')
-            plt.savefig('GenerateFigures/Images/Context Spike Rates/Spike Rate: Animal %i, Tetrode %i, Session %i, Context %i,2'%(animal,tetrode,session,contxt))
-            
+            plt.savefig('GenerateFigures/Images/Context Spike Rates/Animal %i/Bin size %i/Type 2/Tetrode %i, Session %i, Context %i'%(animal,bin_size,tetrode,session,contxt))

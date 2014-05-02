@@ -10,8 +10,7 @@ from matplotlib import pyplot as plt
 from ContextPredictors.checkClassifier import check_classifier
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct as CL1
 from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL2
-from ContextPredictors.DotProducts.DotProduct3 import DotProduct as CL3
-from ContextPredictors.GeneratePopulationVectors.goodClusters import get_good_clusters
+from Data.goodClusters import get_good_clusters
 
 time_per_vl_pt = .02 #(seconds)
 

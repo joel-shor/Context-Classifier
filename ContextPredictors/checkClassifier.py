@@ -2,7 +2,8 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
+#from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
+from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
 from ContextPredictors.GeneratePopulationVectors.countCells import count_cells
 
 
@@ -15,12 +16,19 @@ def check_classifier(Classifier, good_clusters, label, K, bin_size, animal, sess
     
     if label == 'Task':
         label_l = vl['Task']
+    else:
+        raise Exception('Not implemented yet.')
     
     t_cells = count_cells(vl,cls,trigger_tm,good_clusters)
+    if len(t_cells) == 0: raise Exception('No cells found')
     
     X, Y = gpv(vl, t_cells, room_shape, bin_size, label_l, K)
     
     classifier = Classifier(X,Y)
+    
+    if np.sum(classifier.base) == 0:
+        logging.error('Problem with classifier')    
+        raise Exception()
     
     correct_dp = []
     

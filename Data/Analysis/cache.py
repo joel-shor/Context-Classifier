@@ -4,11 +4,11 @@ Created on Apr 20, 2014
 @author: jshor
 '''
 from os import listdir
-from os.path import join
+from os.path import join, dirname, abspath
 import hashlib
 import cPickle
 
-cache_loc = 'Data/Analysis/cache'
+cache_loc = abspath(join(dirname(__file__),'cache'))
 
 def _hash_args(args):
     h = hashlib.sha224()

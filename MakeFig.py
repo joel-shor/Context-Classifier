@@ -20,7 +20,7 @@ from GenerateFigures.generateAccuracyVsKGraphs import generate_accuracy_vs_k_gra
 import logging
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.INFO)
     #generate_cluster_graphs()
     #run('generate_spike_rate_graphs()',sort='cumulative')
     #generate_spike_rate_graphs()
