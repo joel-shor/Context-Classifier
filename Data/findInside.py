@@ -57,6 +57,7 @@ def cache_inside_mask(bin_size, room_shape):
     cache_key = (bin_size, room_shape, 'Inside mask')
     store_in_cache(cache_key, inside)
     
+    return inside
     '''
     import matplotlib.pyplot as plt
     plt.pcolor(inside)

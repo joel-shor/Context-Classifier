@@ -2,6 +2,10 @@
 Created on Apr 11, 2014
 
 @author: jshor
+
+
+
+DEPRECIATED!!!!
 '''
 import logging
 import numpy as np

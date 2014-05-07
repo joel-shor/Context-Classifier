@@ -9,11 +9,16 @@ from Data.readData import load_mux, load_vl, load_cl
 from matplotlib import pyplot as plt
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
-from spikeRateGraph import plot_rates
 
 import numpy as np
 
-def generate_spike_rate_graphs():
+import matplotlib as mpl
+
+
+def smoothing_graph():
+    #mpl.rcParams['axes.titlesize'] = 18
+    #mpl.rcParams['axes.labelsize'] = 18
+    mpl.rcParams['font.size'] = 26
     animal = 70
     session = 8
     room_shape = [[-60,60],[-60,60]]
@@ -46,38 +51,26 @@ def generate_spike_rate_graphs():
                 spks[wanted_cl][contxt] = spk_i_cur
             
         tot_spks = len(spks)
-    
-        rate_dict = {contxt:{} for contxt in contxt_is.keys()}
 
         for wanted_cl, i in zip(spks.keys(), range(tot_spks)):
             for contxt in contxt_is.keys():
                 rates = spike_rate(room_shape,vl,spks[wanted_cl][contxt],
                                    bin_size,valid=contxt_is[contxt])
-                rate_dict[contxt][i+2] = rates
-            logging.info('Processed firing rates for cluster %i', i+2)
-            #plot_rates(Xs,Ys,place_field(rates),i+2)
-
-        for contxt in contxt_is.keys():
-            if len(rate_dict[contxt]) == 0: continue
-            plt.figure('contour')
-            plt.clf()
-            #plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Bin size %i, Session %i, Context %i,1'%(animal,tetrode,bin_size,session,contxt))
-            if contxt == 1: plt.suptitle('Clockwise')
-            else: plt.suptitle('Counterclockwise')
-            plt.figure('pcolor')
-            plt.clf()
-            #plt.suptitle('Spike Rate: Animal %i, Tetrode %i, Bin size %i, Session %i, Context %i,2'%(animal,tetrode,bin_size,session,contxt))
-            if contxt == 1: plt.suptitle('Clockwise')
-            else: plt.suptitle('Counterclockwise')
-     
-            for clusters, rates in rate_dict[contxt].items():
-                plot_rates(room_shape, tot_spks, bin_size, rates,clusters)
-    
-            #plt.show()
-            ''''''
-            plt.figure('contour')
-            plt.show()
-            #plt.savefig('GenerateFigures/Images/Context Spike Rates/Animal %i/Bin size %i/Type 1/Tetrode %i, Session %i, Context %i'%(animal,bin_size,tetrode,session,contxt))
-            plt.figure('pcolor')
-            plt.show()
-            #plt.savefig('GenerateFigures/Images/Context Spike Rates/Animal %i/Bin size %i/Type 2/Tetrode %i, Session %i, Context %i'%(animal,bin_size,tetrode,session,contxt))
+                
+                plt.figure(figsize=(10,10))
+                x = np.concatenate([np.arange(room_shape[0][0],room_shape[0][1],bin_size),[room_shape[0][1]]])
+                y = np.concatenate([np.arange(room_shape[1][0],room_shape[1][1],bin_size),[room_shape[1][1]]])
+                Xs, Ys = np.meshgrid(x, y)
+                cntr = plt.pcolor(Ys,Xs,rates)
+                
+                t=plt.colorbar(cntr, extend='both')
+                t.set_label('Frequency (Hz)')
+                plt.xlabel('Position (in)')
+                plt.ylabel('Position (in)')
+                plt.title('Firing Rate Post-smoothing')
+                
+                #plt.axis('equal')
+                plt.xlim([-60,60])
+                plt.ylim([-60,60])
+                plt.show()
+        

@@ -2,12 +2,13 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-#from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
-from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
+from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
+#from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
 from ContextPredictors.GeneratePopulationVectors.countCells import count_cells
 
 
-def check_classifier(Classifier, good_clusters, label, K, bin_size, animal, session):
+def check_classifier(Classifier, good_clusters, label, K, bin_size, 
+                     animal, session):
     room_shape = [[-60,60],[-60,60]]
     
     fn, trigger_tm = load_mux(animal, session)
@@ -20,23 +21,20 @@ def check_classifier(Classifier, good_clusters, label, K, bin_size, animal, sess
         raise Exception('Not implemented yet.')
     
     t_cells = count_cells(vl,cls,trigger_tm,good_clusters)
+    
     if len(t_cells) == 0: raise Exception('No cells found')
     
-    X, Y = gpv(vl, t_cells, room_shape, bin_size, label_l, K)
+    logging.info('About to generate population vector.')
+    X, Y = gpv(vl, t_cells, label_l, K)
     
-    classifier = Classifier(X,Y)
-    
-    if np.sum(classifier.base) == 0:
-        logging.error('Problem with classifier')    
-        raise Exception()
+    classifier = Classifier(X,Y, room_shape, bin_size)
     
     correct_dp = []
     
     for i in range(len(Y)):
-        sbin = X[i,-1]
-        x = X[i,:-1]
+        x = X[i,:]
         y = Y[i,0]
-        result = classifier.classify(sbin,x)
+        result = classifier.classify(x)
         correct_dp.append(result[y])
     
     # Process

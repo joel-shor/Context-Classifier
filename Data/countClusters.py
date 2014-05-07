@@ -16,7 +16,7 @@ from Analysis.cache import try_cache, store_in_cache
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     
-    animals = range(65,74)
+    animals = [66,70]
     sessions = range(1,100)
     tetrodes = range(1,17)
     

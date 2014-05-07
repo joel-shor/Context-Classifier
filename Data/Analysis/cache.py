@@ -22,10 +22,13 @@ def try_cache(*args):
 
     cached_items = [f for f in listdir(cache_loc)]
 
-    if fn in cached_items:
-        with open(join(cache_loc,fn),'r') as f:
-            return cPickle.load(f)
-    else:
+    try:
+        if fn in cached_items:
+            with open(join(cache_loc,fn),'r') as f:
+                return cPickle.load(f)
+        else:
+            return None
+    except: # If the file is there but correupted
         return None
 
 def store_in_cache(*args):

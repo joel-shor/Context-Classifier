@@ -8,11 +8,11 @@ import logging
 import numpy as np
 from itertools import product
 
-from ContextPredictors.DotProducts.DotProduct1 import DotProduct as CL1
+
 from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL2
 from ContextPredictors.DotProducts.MultinomialOptimum import MultinomialOptimum as CL6
-from ContextPredictors.DotProducts.MultinomialHarsh import MultinomialOptimum as CL8
-from ContextPredictors.DotProducts.MultinomialHarsh2 import MultinomialOptimum as CL9
+from ContextPredictors.DotProducts.PoissonOptimum import PoissonOptimum as CL7
+from ContextPredictors.SVM import SVM as CL5
 
 
 from Data.goodClusters import get_good_clusters
@@ -23,10 +23,10 @@ ln_typs = ['-','--','-.',':']
 
 s_per_vl_pt = .02 #in seconds
 
-def generate_accuracy_vs_k_graphs():
+def compare():
     logging.basicConfig(level=logging.INFO)
     
-    CLs = [CL1]
+    CLs = [CL2,CL7,CL5,CL6]
     
     # Good trials is a dictionary
     #  good_trials[animal] = [list of sessions that are task trials

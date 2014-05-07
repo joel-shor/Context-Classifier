@@ -63,14 +63,11 @@ def spike_rate(room_shape, vl, spk_i, bin_size,valid=None):
                 raise Exception('Spike miscount')
     
     # Smooth
-    #spks = gaussian_filter(spks,2)
-    #times_spent = gaussian_filter(times_spent,2)
-    times_spent[np.nonzero(times_spent == 0)] = np.Infinity
-    pre_smooth_rates = spks/times_spent
+    spks = smooth(spks, bin_size, room_shape)
+    times_spent = smooth(times_spent, bin_size, room_shape)
     
-    post_smooth_rates = smooth(pre_smooth_rates,bin_size, room_shape)
-
-    return post_smooth_rates
+    times_spent[(times_spent == 0)] = np.Infinity
+    return spks/times_spent
 
 def place_field(firing_rate,std_devs=5):
     mn = np.average(firing_rate)
@@ -84,6 +81,13 @@ def hamm_kernel(N):
     kern = pre_normalized/np.sum(pre_normalized)
     return kern
 
+def gauss_kernel(*args):
+    return np.array([[.0025,.0125,.0200,.0125,.0025],
+                     [.0125,.0625,.1000,.0625,.0125],
+                     [.0200,.1000,.1600,.1000,.0200],
+                     [.0125,.0625,.1000,.0625,.0125],
+                     [.0025,.0125,.0200,.0125,.0025]])
+
 def inside(bin_size, room_shape):
     ''' The environment is split into NxN bins. '''
     cache_key = (bin_size, room_shape, 'Inside mask')
@@ -95,32 +99,33 @@ def inside(bin_size, room_shape):
 
     return mask
 
-def smooth(rates,bin_size, room_shape):
+def smooth(array,bin_size, room_shape):
     ''' Apply a filter to smooth rates.
     
         Convolve with the filters, then adjust 
         by the appropriate weight.'''
     
-    assert (room_shape[0][1]-room_shape[0][0])%bin_size==0
-    assert (room_shape[1][1]-room_shape[1][0])%bin_size==0
+    assert (room_shape[0][1]-room_shape[0][0])/bin_size==array.shape[0]
+    assert (room_shape[1][1]-room_shape[1][0])/bin_size==array.shape[1]
     
     bin_len = (room_shape[0][1]-room_shape[0][0])/bin_size
     
     ins_mask = inside(bin_size,room_shape)
     
-    if np.sum(( 1-ins_mask)*rates) != 0:
+    if np.sum(( 1-ins_mask)*array) != 0:
         print 'Something is going on outside!'
         import pdb; pdb.set_trace()
         import matplotlib.pyplot as plt
         plt.figure()
-        plt.pcolor((1-ins_mask)*rates)
+        plt.pcolor((1-ins_mask)*array)
         plt.figure()
         plt.pcolor(ins_mask)
         plt.show()
+        import pdb; pdb.set_trace()
         raise Exception('Something is going on outside!')
     
-    filt = hamm_kernel(int(round(filt_win_ratio*bin_len,0)))
-    pre_adjusted_rates = np.real(convolve2d(rates,filt,mode='same'))
+    filt = gauss_kernel(int(round(filt_win_ratio*bin_len,0)))
+    pre_adjusted_rates = np.real(convolve2d(array,filt,mode='same'))
     weight_adjustment = np.real(convolve2d(ins_mask,filt,mode='same'))
     
     # Adjust weight_adjustment so we don't get any division by 0 errors

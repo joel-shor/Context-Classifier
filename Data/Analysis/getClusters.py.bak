@@ -59,7 +59,7 @@ def spike_loc(cl, vl, trigger_tm, target_cl,key=None):
     speed = matround(np.sqrt(vl['vxs']**2+vl['vys']**2),decimals=6)[spk_i]
     
     # Only leave spikes when rat is running faster than 2 in /sec
-    spk_i = spk_i[(speed > 2) & (speed < 40) ]
+    spk_i = spk_i[np.nonzero(speed > 5)[0]]
     
     if key is not None: store_in_cache(key, spk_i)
     

@@ -12,8 +12,8 @@ from itertools import product as pr
 
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct
 
-class MultinomialOptimum(DotProduct):
-    name = 'Multinomial Optimum'
+class PoissonOptimum(DotProduct):
+    name = 'Poisson Optimum'
     
     # This needs to be input for the classifier to compute the
     #  bias properly
@@ -44,7 +44,7 @@ class MultinomialOptimum(DotProduct):
         
         return {self.labels[0]: cntxt0,
                 self.labels[1]: cntxt1}
-    
+
     def train(self, X,Y,room, bin_size):
         ''' Generate self.base, where
             base[bin,context,:] is vector of firing rates.
@@ -58,7 +58,7 @@ class MultinomialOptimum(DotProduct):
             Assume that X is a [# examples, # cells + 2] array, where
             X[:,-1] is the bin.'''
 
-        super(MultinomialOptimum,self).train(X,Y,room, bin_size)
+        super(PoissonOptimum,self).train(X,Y,room, bin_size)
         K = self.delt_t*1.0
         
         self.zero_0 = (self.base[:,:,0,:]==0)
@@ -83,8 +83,9 @@ class MultinomialOptimum(DotProduct):
             
             if Pr0==0 or Pr1 == 0:
                 Pr0 = Pr1 = .5
-            
-            self.w0s[xbin,ybin] = np.log(1.0*Pr0/Pr1)/self.delt_t
+            rb = self.base[xbin,ybin,1,:]
+            ra = self.base[xbin,ybin,0,:]
+            self.w0s[xbin,ybin] = ( np.log(1.0*Pr0/Pr1) +np.sum(rb) - np.sum(ra) ) / K
 
 
         

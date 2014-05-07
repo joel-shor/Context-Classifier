@@ -5,7 +5,6 @@ Created on Apr 9, 2014
 
 The Dot Product classifier as described by Jezek, et al (2011)
 '''
-
 import numpy as np
 from scipy.stats import mode
 import logging
@@ -18,7 +17,7 @@ def _spk_indicators(t_cells,n):
         indicator[spk_i] = j+1
     return indicator
 
-def generate_population_vectors(vl, t_cells, label_l, K=32):
+def generate_population_vectors_w_silence(vl, t_cells, label_l, K=32):
     ''' Returns a matrix of feature vectors.
     
     The feature vector is:
@@ -35,7 +34,7 @@ def generate_population_vectors(vl, t_cells, label_l, K=32):
     # Check data integrity
     assert len(label_l) == len(vl['xs'])
     
-    X = np.zeros([len(label_l)/K,len(t_cells)+2]) #Need x y coordinates at the end
+    X = np.zeros([len(label_l)/K,len(t_cells)+1+2]) #Need silence and x y coordinates at the end
     Y = np.zeros([len(label_l)/K,1])
 
     # Generate an indicator array for identity of spiking cell
@@ -52,8 +51,8 @@ def generate_population_vectors(vl, t_cells, label_l, K=32):
     #bins2 = bins[len(label_l)%K:].reshape([-1,K])
     
     # Put in cell firing rates
-    for cell in range(1,len(t_cells)+1): # Don't include silence
-        X[:,cell-1] = np.sum(spks2 == cell,axis=1)
+    for cell in range(0,len(t_cells)+1): # Don't include silence
+        X[:,cell] = np.sum(spks2 == cell,axis=1)
     
     # Normalize
     X /= 1.0*K

@@ -1,3 +1,22 @@
+import numpy as np
+
+a = np.array([[.0025,.0125,.0200,.0125,.0025],
+                     [.0125,.0625,.1000,.0625,.0125],
+                     [.0200,.1000,.1600,.1000,.0200],
+                     [.0125,.0625,.1000,.0625,.0125],
+                     [.0025,.0125,.0200,.0125,.0025]])
+print a
+import sys; sys.exit()
+
+
+from sklearn import cross_validation
+kf = cross_validation.KFold(10,n_folds=5,shuffle=True)
+for a, b in kf:
+    print a, b
+import sys; sys.exit()
+
+
+
 
 import logging
 import numpy as np

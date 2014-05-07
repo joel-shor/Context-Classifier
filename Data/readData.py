@@ -9,6 +9,8 @@ import numpy as np
 from datetime import datetime
 from Analysis.matlabRound import matround
 
+from Data.Analysis.cache import try_cache, store_in_cache
+
 dat_base = dirname(abspath(__file__))
 
 
@@ -23,6 +25,11 @@ def load_cl(animal, fn, tetrode):
         ie [[1],[2],[3],...], [[1],[4],[3.4],...]
         the lengths are the same
      '''
+    cache = try_cache(animal,fn,tetrode, 'clusters')
+    if cache is not None:
+        return cache
+    
+    
     clpath = join(dat_base,'Data Files','Clusters','clusters%s'%(animal,),fn)
     tmp = loadmat(clpath+'.cmb.%i.mat'%(tetrode,))
     try:
@@ -30,9 +37,13 @@ def load_cl(animal, fn, tetrode):
     except:
         dt = None
     
-    return {'Datetime': dt, 
+    out = {'Datetime': dt, 
             'Time': np.array(tmp['clust'][0,0][0]), 
             'Label': np.array(tmp['clust'][0,0][1])}
+    
+    store_in_cache(animal, fn, tetrode, 'clusters', out)
+    
+    return out
 
 
 
@@ -64,6 +75,11 @@ def load_vl(animal, fn):
           tmp['virmenLog'][0,0][-1][0,0][1]: 1x54561 ndarray
 
     '''
+    
+    cache=try_cache(animal,fn,'virmenLog')
+    if cache is not None:
+        return cache
+    
     vlpath = join(dat_base,'Data Files','VirmenLog','virmenLog%s'%(animal,),fn)
 
     tmp = loadmat(vlpath+'.cmb.mat')
@@ -93,7 +109,7 @@ def load_vl(animal, fn):
     iteration_num = matround(np.interp(range(len(iteration_num)), f, iteration_num[f]),0)
     iteration_num = iteration_num.astype(int)
     
-    return {'Datetime': dt,
+    out = {'Datetime': dt,
             'Time': nows, 
             'xs': xs, 
             'ys': ys, 
@@ -104,6 +120,10 @@ def load_vl(animal, fn):
             'txs': txs,
             'tys': tys,
             'Task':task_clockwiseness}
+    
+    store_in_cache(animal,fn,'virmenLog',out)
+    
+    return out
  
 def load_wv(animal, fn, tetrode):
     ''' A waveform file is a list of 4 data points corresponding to
@@ -112,8 +132,15 @@ def load_wv(animal, fn, tetrode):
         returns an Xx4 ndarray
         ]
         '''
+    cache=try_cache(animal,fn,tetrode,'waveform')
+    if cache is not None: return cache
+    
     clpath = join(dat_base,'Data Files','Waveforms','waveforms%s'%(animal,),fn)
-    return loadmat(clpath+'.cmb.%i.mat'%(tetrode,))['waveforms']
+    out = loadmat(clpath+'.cmb.%i.mat'%(tetrode,))['waveforms']
+    
+    store_in_cache(animal,fn,tetrode,'waveform',out)
+    
+    return out
 
 def load_mux(animal, session):
     '''
@@ -146,6 +173,10 @@ def load_mux(animal, session):
     mux[1][0,session][1][0,0][0][0,0][6][0,1][1][0,0][0]: np.void, len = 2
     '''
     
+    cache=try_cache(animal,session,'mux')
+    if cache is not None:
+        return cache
+    
     session -= 1 # Session starts at 1, but array indices start at 0
     muxpath = join(dat_base,'Data Files', str(animal))
     mux = loadmat(muxpath+'.mat')['mux'][0][0]
@@ -175,8 +206,11 @@ def load_mux(animal, session):
     # It is already given in 
     bt = mux[1][0,session][1][0,0][3][0,0][0][0,0]
     
+    out = (fn,bt)
     
-    return fn, bt
+    store_in_cache(animal,session,'mux',out)
+    
+    return out
 
 def _datenum(dt):
     ''' Takes a python datetime.datetime and converts it to

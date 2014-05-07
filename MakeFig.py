@@ -16,6 +16,9 @@ from GenerateFigures.generateAmbiguousDataGraphs import generate_ambiguous_data_
 from GenerateFigures.generateDPPredictionGraph import generate_DP_prediction_graph
 from GenerateFigures.generateAccuracyVsKGraphs import generate_accuracy_vs_k_graphs
 
+from GenerateFigures.PaperGraphs.rateGraph import rate_graph
+from GenerateFigures.PaperGraphs.smoothingGraph import smoothing_graph
+from GenerateFigures.PaperGraphs.compareGraph import compare
 
 import logging
 
@@ -34,5 +37,10 @@ if __name__ == '__main__':
     #generate_DP_confidence_graph()
     #generate_ambiguous_data_graphs()
     #generate_DP_prediction_graph()
-    generate_accuracy_vs_k_graphs()
+    #generate_accuracy_vs_k_graphs()
+    
+    #For paper
+    #rate_graph()
+    #smoothing_graph()
+    compare()
     
