@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-from Data.Analysis.cache import try_cache, store_in_cache
+from cache import try_cache, store_in_cache
 from Data.goodClusters import get_good_clusters
 from Data.Analysis.getClusters import spike_loc
 

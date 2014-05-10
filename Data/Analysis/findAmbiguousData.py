@@ -7,7 +7,7 @@ import numpy as np
 import logging
 import traceback
 
-from Data.Analysis.cache import try_cache, store_in_cache
+from cache import try_cache, store_in_cache
 from Data.readData import load_mux, load_vl
 from Data.Analysis.classifyTask import get_orientation
 

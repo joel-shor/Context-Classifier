@@ -27,7 +27,7 @@ from ContextPredictors.DotProducts.MultinomialOptimum import MultinomialOptimum 
 
 
 from Data.goodClusters import get_good_clusters
-from Data.Analysis.cache import try_cache, store_in_cache, add
+from cache import try_cache, store_in_cache, add
 
 def run():
     logging.basicConfig(level=logging.INFO)

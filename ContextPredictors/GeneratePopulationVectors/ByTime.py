@@ -22,7 +22,7 @@ def generate_population_vectors(vl, t_cells, label_l, K=32):
     ''' Returns a matrix of feature vectors.
     
     The feature vector is:
-    [frac cell 1, frac cell 2, ..., frac cell n, mode bin #]
+    [frac cell 1, frac cell 2, ..., frac cell n, mode X, mode Y]
     
     The label is the mode bin #.
     

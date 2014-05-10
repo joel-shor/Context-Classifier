@@ -21,9 +21,9 @@ def rate_graph():
     mpl.rcParams['font.size'] = 26
     
     
-    animal = 70
-    session = 8
-    room_shape = [[-60,60],[-60,60]]
+    animal = 66
+    session = 60
+    room_shape = [[-55,55],[-55,55]]
     
     # Jezek uses 2cm x 2cm
     bin_size = 5
@@ -37,12 +37,12 @@ def rate_graph():
     contxt_is = {cntxt:np.nonzero(vl['Task']==cntxt)[0] for cntxt in np.unique(vl['Task'])}
     
     #for tetrode in range(1,17):
-    for tetrode in [13]:
+    for tetrode in [1]:
         spks = {}
         cl = load_cl(animal,fn,tetrode)
         
         #for wanted_cl in range(2,100):
-        for wanted_cl in [3]:
+        for wanted_cl in range(2,9):
             logging.info('Finding spike locations for cell %i, tetrode %i',wanted_cl,tetrode)
             cache_key = (cl['Label'][::10],vl['xs'][::10],trigger_tm,wanted_cl, animal, session)
             spk_i = spike_loc(cl, vl, trigger_tm, wanted_cl,cache_key)
@@ -82,8 +82,8 @@ def rate_graph():
             else: plt.title('Counterclockwise')
             
             #plt.axis('equal')
-            plt.xlim([-60,60])
-            plt.ylim([-60,60])
+            plt.xlim(room_shape[0])
+            plt.ylim(room_shape[1])
 
             '''
             plt.figure()

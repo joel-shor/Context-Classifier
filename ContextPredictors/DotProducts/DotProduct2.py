@@ -14,7 +14,7 @@ from ContextPredictors.DotProducts.DotProduct1 import DotProduct
 
 class DotProduct(DotProduct):
     name = 'DP Profile 2'
-        
+    
     def classify(self,X):
         x,y = X[-2:]
         xbin,ybin = self.pos_to_xybin(x,y)
@@ -40,7 +40,7 @@ class DotProduct(DotProduct):
         return {self.labels[0]: cntxt0,
                 self.labels[1]: cntxt1}
     
-    def train(self, X,Y, room, bin_size):
+    def train(self, X,XLocs, YLocs, Y, room, bin_size):
         ''' Generate self.base_vec, where
             base_vec[xbin,ybin,context,:] is vector of firing rates.
             
@@ -49,6 +49,6 @@ class DotProduct(DotProduct):
             
             room is [[xmin,xmax],[ymin,ymax]]'''
 
-        super(DotProduct,self).train(X,Y,room,bin_size)
-        self.means = np.mean(X[:,:-2],axis=0)
+        super(DotProduct,self).train(X,XLocs, YLocs, Y,room,bin_size)
+        self.means = np.mean(X,axis=0)
         self.means[self.means==0] = 1 # If it's 0, then it doesn't matter anyways

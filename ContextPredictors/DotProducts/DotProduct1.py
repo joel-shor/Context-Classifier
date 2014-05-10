@@ -14,12 +14,15 @@ from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.spikeRate import smooth
 
 class DotProduct(ContextPredictor):
-    name = 'DP Profile 1'
+    name = 'Jezek'
     
     def __init__(self, X,Y, room_shape, bin_size):
         self.bin_size=bin_size
         self.room_shape=room_shape
-        self.train(X,Y,room_shape, bin_size)
+        XLocs = X[:,-1]
+        YLocs = X[:,-2]
+        X = X[:,:-2]
+        self.train(X,XLocs,YLocs, Y,room_shape, bin_size)
         
     def classify(self,X):
         x,y = X[-2:]
@@ -88,7 +91,7 @@ class DotProduct(ContextPredictor):
                 
                 indicator[in_bin] = bin_id
         return indicator
-    def train(self, X,Y, room, bin_size):
+    def train(self, X,XLocs, YLocs, Y, room, bin_size):
         ''' Generate self.base_vec, where
             base_vec[xbin,ybin,context,:] is vector of firing rates.
             
@@ -103,77 +106,38 @@ class DotProduct(ContextPredictor):
         self.xblen=xblen
         self.yblen=yblen
         
-        
         self.labels = np.unique(Y)
-        
+
         # Make reverse mappings
         self.l_rev = {self.labels[i]:i for i in range(len(self.labels))}
         
         # Find the spikes, the time, and do a smoothing
-        spks = np.zeros([xblen,yblen,len(self.labels),X.shape[1]-2])
-        spks2 = np.zeros([xblen,yblen,len(self.labels),X.shape[1]-2])
+        spks = np.zeros([xblen,yblen,len(self.labels),X.shape[1]])
         time_spent = np.zeros([xblen,yblen,len(self.labels)])
         
-        bin_labels = self._bin_indicator(X[:,-2],X[:,-1],
-                                         xblen,yblen,bin_size, room)
-        #import pdb; pdb.set_trace()
+        bin_labels = self._bin_indicator(XLocs,YLocs, xblen,yblen,bin_size, room)
+
         for cxbin, cybin, label in itertools.product(range(xblen),range(yblen),self.labels):
-            iss1 = np.nonzero(Y==label)[0]
+            correct_label = np.nonzero(Y==label)[0]
             cbin_l = self.bin_id(cxbin, cybin, yblen)
-            tm = np.sum(bin_labels[iss1]==cbin_l)
-            #print 'time spent in (%i,%i)=%i'%(cxbin,cybin,tm)
+            tm = np.sum(bin_labels[correct_label]==cbin_l)
+
             time_spent[cxbin,cybin,self.l_rev[label]] = tm
-            #print cxbin,cybin,label,tm, time_spent[cxbin,cybin,self.l_rev[label]]
-            iss2 = np.nonzero(bin_labels==cbin_l)[0]
-            iss3 = np.intersect1d(iss1,iss2)
+
+            correct_bin = np.nonzero(bin_labels==cbin_l)[0]
+            cur_bin_and_label = np.intersect1d(correct_label,correct_bin)
             
-            curX = X[iss3,:-2]
+            curX = X[cur_bin_and_label,:]
             cur_spks = np.sum(curX,axis=0)
-            #print cxbin,cybin,label,tm,cur_spks
-            #if tm != 0 and cur_spks!=0:
-            #    import pdb; pdb.set_trace()
-            
             
             spks[cxbin,cybin,self.l_rev[label],:] = cur_spks
         
-        try:
-            assert np.all(  (np.sum(X[:,:-2],axis=0) - np.sum(spks,axis=(0,1,2))) < 10**-8)
-        except:
-            import pdb; pdb.set_trace()
-            raise
-        
-        #import matplotlib.pyplot as plt
-        '''
-        import pdb; pdb.set_trace()
-        plt.figure()
-        plt.pcolor(time_spent[:,:,0])
-        for cntxt in range(len(self.labels)):
-            time_spent[:,:,cntxt] = smooth(time_spent[:,:,cntxt],bin_size, room)
-        plt.figure()
-        plt.pcolor(time_spent[:,:,0])
-        plt.show()
-        
-        for i in range(3):
-            plt.figure()
-            plt.pcolor(spks[:,:,0,i])
-        plt.show()'''
+        assert np.all(  (np.sum(X,axis=0) - np.sum(spks,axis=(0,1,2))) < 10**-8)
         
         time_spent[time_spent==0] = np.Inf
         for cell, context in itertools.product(range(spks.shape[3]),
                                                range(len(self.labels))):
-            '''if np.sum(spks[:,:,context,cell]) !=0:
-                plt.figure()
-                plt.pcolor(spks[:,:,context,cell])'''
             spks[:,:,context,cell] = smooth(spks[:,:,context,cell],bin_size, room)
-            '''if np.sum(spks[:,:,context,cell]) !=0:
-                plt.figure()
-                plt.pcolor(spks[:,:,context,cell])
-                plt.show()'''
-            
             spks[:,:,context,cell] /= time_spent[:,:,context]
         
         self.base = spks
-            
-
-        
-                

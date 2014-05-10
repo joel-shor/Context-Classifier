@@ -13,7 +13,7 @@ import logging
 from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.getClusters import spike_loc
 from Data.Analysis.spikeRate import spike_rate
-from Data.Analysis.cache import try_cache, store_in_cache
+from cache import try_cache, store_in_cache
 
 class DotProduct(ContextPredictor):
     name = 'DP Profile 2'

@@ -16,7 +16,7 @@ from ContextPredictors.SVM import SVM as CL5
 
 
 from Data.goodClusters import get_good_clusters
-from Data.Analysis.cache import try_cache
+from cache import try_cache
 
 clrs = ['b','r','c','k','y','m']
 ln_typs = ['-','--','-.',':']

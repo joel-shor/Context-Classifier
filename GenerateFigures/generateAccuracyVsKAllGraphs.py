@@ -13,7 +13,7 @@ from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL2
 from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL4
 from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL5
 from Data.goodClusters import get_good_clusters
-from Data.Analysis.cache import try_cache
+from cache import try_cache
 
 clrs = ['b','r','c','k','y','m']
 ln_typs = ['-','--','-.',':']

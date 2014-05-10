@@ -12,13 +12,11 @@ from ContextPredictors.checkClassifier import check_classifier
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct as CL1
 from ContextPredictors.DotProducts.DotProduct2 import DotProduct as CL2
 from ContextPredictors.DotProducts.MultinomialOptimum import MultinomialOptimum as CL6
-from ContextPredictors.DotProducts.MultinomialOptimumSmoothed import MultinomialOptimum as CL7
 from ContextPredictors.DotProducts.MultinomialHarsh import MultinomialOptimum as CL8
 from ContextPredictors.DotProducts.MultinomialHarsh2 import MultinomialOptimum as CL9
 
-
 from Data.goodClusters import get_good_clusters
-from Data.Analysis.cache import try_cache, store_in_cache, add
+from cache import try_cache, store_in_cache, add
 
 def run():
     logging.basicConfig(level=logging.WARNING)
@@ -29,16 +27,14 @@ def run():
     #  good_trials[animal] = [list of sessions that are task trials
     #                         and have at least one labeled cluster]
     good_trials = try_cache('Good trials')
-    animal_sess_combs = [(animal,session) for animal in range(65,74) 
-                         for session in good_trials[animal]]
-    animal_sess_combs = [(66,60)]
+    animal_sess_combs = [(66,60),(70,8),(70,10),(66,61)]
 
     bin_sizes = [5]
     Ks = np.arange(10,600,100) # Segment length used to calculate firing rates
     cl_profs = [0]
     label = 'Task'
     exceptions = []
-    
+
     cache = try_cache('One big data structure')
     adat = ({} if cache is None else cache)
     adat = {}

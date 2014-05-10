@@ -6,7 +6,7 @@ class MainWin:
     
     def __init__(self, step):
         #self.iter_num = 0
-        self.iter_num = 58000
+        self.iter_num = 0
         self.step = step
         self.ER = None
         self.WR = None

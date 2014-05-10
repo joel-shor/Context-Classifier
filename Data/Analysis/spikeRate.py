@@ -9,7 +9,7 @@ from scipy.signal import convolve2d
 import logging
 
 from Data.findInside import cache_inside_mask
-from Data.Analysis.cache import try_cache
+from cache import try_cache
 
 filt_win_ratio = 1.0/3   # Make it odd!
 time_per_vl_pt = .02 #(seconds)
@@ -63,8 +63,8 @@ def spike_rate(room_shape, vl, spk_i, bin_size,valid=None):
                 raise Exception('Spike miscount')
     
     # Smooth
-    spks = smooth(spks, bin_size, room_shape)
-    times_spent = smooth(times_spent, bin_size, room_shape)
+    #spks = smooth(spks, bin_size, room_shape)
+    #times_spent = smooth(times_spent, bin_size, room_shape)
     
     times_spent[(times_spent == 0)] = np.Infinity
     return spks/times_spent

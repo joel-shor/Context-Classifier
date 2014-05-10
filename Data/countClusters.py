@@ -10,7 +10,7 @@ import logging
 import numpy as np
 
 from readData import load_mux, load_cl, load_vl
-from Analysis.cache import try_cache, store_in_cache
+from cache import try_cache, store_in_cache
 
 
 if __name__ == '__main__':

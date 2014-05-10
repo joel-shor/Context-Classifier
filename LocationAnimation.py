@@ -22,7 +22,7 @@ animation_step_size = 10
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     
-    room_shape = [[-60,60],[-60,60]]
+    room_shape = [[-55,55],[-55,55]]
     animal = 66
     session = 60
     tetrode=3

@@ -8,7 +8,7 @@ import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
-from Data.Analysis.cache import try_cache, store_in_cache
+from cache import try_cache, store_in_cache
 from Data.Analysis.classifyTask import get_orientation
 
 def generate_DP_accuracy_graph():

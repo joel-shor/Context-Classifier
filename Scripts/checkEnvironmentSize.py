@@ -5,7 +5,7 @@ Created on May 4, 2014
 '''
 from Data.readData import load_mux, load_vl
 import numpy as np
-from Data.Analysis.cache import try_cache
+from cache import try_cache
 
 ## Environment is bounded by [-53.57,53.57]x[-53.57,53.57]
 
