@@ -12,7 +12,9 @@ from Analysis.matlabRound import matround
 from cache import try_cache, store_in_cache
 
 dat_base = dirname(abspath(__file__))
-
+# Filenames (fn) are named descriptively:
+# session 18:14:04 on day 10/25/2013
+# load virmenLog75\20131025T181404.cmb.mat
 
 def load_cl(animal, fn, tetrode):
     ''' Returns the date as a datetime, a list of index numbers, and

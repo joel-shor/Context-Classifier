@@ -28,7 +28,7 @@ def cache_inside_mask(bin_size, room_shape):
     inside = np.zeros([N,N])
     good_trials = try_cache('Good trials')
     
-    for animal in range(65,66):
+    for animal in [66,70]:
         for session in good_trials[animal]:
             logging.info('Checking animal %i, session %i',animal,session)
             fn, _ = load_mux(animal, session)
@@ -58,14 +58,5 @@ def cache_inside_mask(bin_size, room_shape):
     store_in_cache(cache_key, inside)
     
     return inside
-    '''
-    import matplotlib.pyplot as plt
-    plt.pcolor(inside)
-    plt.show()'''
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    room_shape = [[-60,60],[-60,60]]
-    bin_size = 4
-    cache_inside_mask(bin_size, room_shape)
     

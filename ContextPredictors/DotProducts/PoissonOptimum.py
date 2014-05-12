@@ -11,6 +11,7 @@ import logging
 from itertools import product as pr
 
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct
+from Data.Analysis.Indicators import pos_to_xybin, bin_id
 
 class PoissonOptimum(DotProduct):
     name = 'Poisson Optimum'
@@ -21,7 +22,7 @@ class PoissonOptimum(DotProduct):
     
     def classify(self,X):
         x,y = X[-2:]
-        xbin,ybin = self.pos_to_xybin(x,y)
+        xbin,ybin = pos_to_xybin(x,y)
         
         w = self.ws[xbin,ybin,:]
         w0 = self.w0s[xbin,ybin]
@@ -76,7 +77,7 @@ class PoissonOptimum(DotProduct):
 
         bind =  self._bin_indicator(X[:,-2],X[:,-1],self.xblen,self.yblen,bin_size,room)
         for xbin,ybin in pr(range(self.base.shape[0]),range(self.base.shape[1])):
-            curid = self.bin_id(xbin,ybin,self.base.shape[1])
+            curid = bin_id(xbin,ybin,self.base.shape[1])
             in_bin = np.nonzero(bind==curid)[0]
             Pr0 = np.sum(Y[in_bin]==self.labels[0])
             Pr1 = np.sum(Y[in_bin]==self.labels[1])

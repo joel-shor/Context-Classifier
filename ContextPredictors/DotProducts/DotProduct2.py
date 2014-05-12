@@ -11,16 +11,18 @@ import logging
 import itertools
 
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct
+from Data.Analysis.Indicators import pos_to_xybin
 
 class DotProduct(DotProduct):
     name = 'DP Profile 2'
     
     def classify(self,X):
         x,y = X[-2:]
-        xbin,ybin = self.pos_to_xybin(x,y)
-        
-        cntxt0 = np.dot(self.base[xbin,ybin,0,:]/self.means,X[:-2]/self.means)
-        cntxt1 = np.dot(self.base[xbin,ybin,1,:]/self.means,X[:-2]/self.means)
+        xbin,ybin = pos_to_xybin(x,y, self.xblen,self.yblen,self.bin_size,self.room)
+
+        cntxt0 = np.dot(self.base[xbin,ybin,0,:]/self.means[xbin,ybin],X[:-2]/self.means[xbin,ybin])
+        cntxt1 = np.dot(self.base[xbin,ybin,1,:]/self.means[xbin,ybin],X[:-2]/self.means[xbin,ybin])
+
         
         # Normalize
         if cntxt0 != 0 or cntxt1 != 0:
@@ -30,10 +32,6 @@ class DotProduct(DotProduct):
         
         cntxt0 /= mag
         cntxt1 /= mag
-        
-        if not (round(cntxt0 + cntxt1,5) in [0,1]):
-            import pdb; pdb.set_trace()
-            raise Exception()
         
         assert (round(cntxt0 + cntxt1,5) in [0,1])
         
@@ -50,5 +48,6 @@ class DotProduct(DotProduct):
             room is [[xmin,xmax],[ymin,ymax]]'''
 
         super(DotProduct,self).train(X,XLocs, YLocs, Y,room,bin_size)
-        self.means = np.mean(X,axis=0)
+        # self.base[xbin, ybin, lbl, cell id] = rate
+        self.means = 1.0*np.mean(self.base,axis=2)
         self.means[self.means==0] = 1 # If it's 0, then it doesn't matter anyways

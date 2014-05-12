@@ -4,77 +4,113 @@ Created on Mar 29, 2014
 @author: jshor
 '''
 import numpy as np
+from itertools import product
 from scipy.signal import hamming as hamm
 from scipy.signal import convolve2d
 import logging
 
 from Data.findInside import cache_inside_mask
 from cache import try_cache
+from Data.Analysis.Indicators import bin_indicator, bin_id, cell_id
 
-filt_win_ratio = 1.0/3   # Make it odd!
-time_per_vl_pt = .02 #(seconds)
+tpp = .02 #Time per point (seconds) 
 
-def spike_rate(room_shape, vl, spk_i, bin_size,valid=None):
-    ''' Returns a matrix corresponding to the spike rate in the (i,j)th spatial bin. '''
+def rates_from_pv(X,Y,bin_size,room,smooth_flag=True):
+    ''' Convert population vectors to firing rates.
+        rates[cell id, lbl, xbin, ybin] = rate'''
+    assert (room[0][1]-room[0][0])%bin_size == 0
+    assert (room[1][1]-room[1][0])%bin_size == 0
     
-    # Valid is a list of indices that are valid. We want an array with 1 in valid
-    #  spots and 0 elsewhere, so do the conversion
-    if valid == None:
-        valid = np.array([True]*len(vl['Task']))
-    else:
-        valid_tmp = np.array([False]*len(vl['Task']))
-        valid_tmp[valid] = True
-        valid = valid_tmp
+    x = X[:,-2]
+    y = X[:,-1]
+    X = X[:,:-2]
     
+    xbins = (room[0][1]-room[0][0])/bin_size
+    ybins = (room[1][1]-room[1][0])/bin_size
     
-    [[xmin,xmax],[ymin,ymax]] = room_shape
-    if (xmax-xmin)%bin_size != 0 or (ymax-ymin)%bin_size != 0:
-        raise Exception('Bin size is not compatible with room size.')
-    xbinsz = (xmax-xmin)/bin_size
-    ybinsz = (ymax-ymin)/bin_size
-    spks = np.zeros([xbinsz,ybinsz])
-    times_spent = np.zeros([xbinsz,ybinsz])
+    labels = np.unique(Y)
+    lbl_is = {lbl:np.nonzero(Y==lbl)[0] for lbl in labels}
     
-    for xbin in range(xbinsz):
-        
-        xstart = xmin+xbin*bin_size
-        xend = xmin+(xbin+1)*bin_size
-        
-        x_strip_spks = (vl['xs'][spk_i] >= xstart) &  (vl['xs'][spk_i] < xend)
-        
-        x_strip_time = (vl['xs'] >= xstart) & (vl['xs'] < xend) & valid
-        
-        for ybin in range(ybinsz):
-            
-            ystart = ymin+(ybin)*bin_size
-            yend = ymin+(ybin+1)*bin_size
-            
-            y_strip_spks = (vl['ys'][spk_i] >= ystart) & (vl['ys'][spk_i] < yend)
-            
-            y_strip_time = (vl['ys'] >= ystart) & (vl['ys'] < yend) & valid
-            
-            pts = np.sum(x_strip_time & y_strip_time)
-            times_spent[xbin,ybin] = pts*time_per_vl_pt
-            
-            spk_cnt = np.sum(x_strip_spks & y_strip_spks)
-            spks[xbin,ybin] = 1.0*spk_cnt
-            
-            if spk_cnt > pts:
-                raise Exception('Spike miscount')
+    bins = bin_indicator(x,y,xbins,ybins,bin_size,room)
+    bin_is = {(xbin,ybin):np.nonzero(bins==bin_id(xbin,ybin,ybins))[0] for xbin,ybin in product(range(xbins),range(ybins))}
     
-    # Smooth
-    #spks = smooth(spks, bin_size, room_shape)
-    #times_spent = smooth(times_spent, bin_size, room_shape)
-    
-    times_spent[(times_spent == 0)] = np.Infinity
-    return spks/times_spent
+    spks = np.zeros([X.shape[1],len(labels),xbins,ybins])
+    time_spent = np.zeros([X.shape[1],len(labels),xbins,ybins])
 
-def place_field(firing_rate,std_devs=5):
-    mn = np.average(firing_rate)
-    std = np.std(firing_rate)
-    return firing_rate > mn+std_devs*std
+    for xbin,ybin,lbl in product(range(xbins),range(ybins),range(len(labels))):
+        bin_i = bin_is[(xbin,ybin)]
+        lbl_i = lbl_is[labels[lbl]]
+        cur = np.intersect1d(bin_i, lbl_i)
+        if len(cur) == 0: continue
+        time_spent[:,lbl,xbin,ybin] = len(cur)
+        spks[:,lbl,xbin,ybin] = np.sum(X[cur,:],axis=0)
+    
+    if smooth_flag:
+        for cell,lbl in product(range(spks.shape[0]),range(spks.shape[1])):
+            spks[cell,lbl] = smooth(spks[cell,lbl], bin_size, room)
+            time_spent[cell,lbl] = smooth(time_spent[cell,lbl], bin_size, room)
+    
+    # Prevent divide by 0
+    time_spent[time_spent==0]=1
+    
+    rates = 1.0*spks/time_spent/tpp
+    
+    return rates
+
+def get_rates(x,y,label_l, room, bin_size, t_cells, smooth_flag=True):
+    
+    assert (room[0][1]-room[0][0])%bin_size == 0
+    assert (room[1][1]-room[1][0])%bin_size == 0
+    
+    xbins = (room[0][1]-room[0][0])/bin_size
+    ybins = (room[1][1]-room[1][0])/bin_size
+    
+    labels = np.unique(label_l)
+    lbl_is = {lbl:np.nonzero(label_l==lbl)[0] for lbl in labels}
+    
+    bins = bin_indicator(x,y,xbins,ybins,bin_size,room)
+    bin_is = {(xbin,ybin):np.nonzero(bins==bin_id(xbin,ybin,ybins))[0] for xbin,ybin in product(range(xbins),range(ybins))}
+    
+    spks = np.zeros([len(t_cells),len(labels),xbins,ybins])
+    time_spent = np.zeros([len(t_cells),len(labels),xbins,ybins])
+    
+    logging.info('Calculating firing rates')
+    for xbin,ybin,lbl in product(range(xbins),range(ybins),labels):
+
+        bin_i = bin_is[(xbin,ybin)]
+    
+        lbl_i = lbl_is[lbl]
+        
+        time_i = np.intersect1d(bin_i,lbl_i)
+        if len(time_i)==0:continue # no time spent in bin
+        cur_lbl_id = np.where(labels==lbl)
+        time_spent[:,cur_lbl_id,xbin,ybin] = len(time_i)
+        
+        
+        for key in t_cells.keys():
+            
+            cell_i = t_cells[key]
+            cur_i = np.intersect1d(time_i,cell_i)
+            
+            tetrode,cell = key
+            cur_cell_id = cell_id(tetrode,cell,t_cells)
+            
+            spks[cur_cell_id, cur_lbl_id, xbin, ybin] = len(cur_i)
+    
+    
+    if smooth_flag:
+        for cell,lbl in product(range(spks.shape[0]),range(spks.shape[1])):
+            spks[cell,lbl] = smooth(spks[cell,lbl], bin_size, room)
+            time_spent[cell,lbl] = smooth(time_spent[cell,lbl], bin_size, room)
+    
+    # Prevent divide by 0
+    time_spent[time_spent==0]=1
+    
+    return 1.0*spks/time_spent/tpp
+
 
 def hamm_kernel(N):
+    ''' Depreciated. '''
     left = hamm(N).reshape([-1,1])
     right = np.transpose(left)
     pre_normalized = np.dot(left,right)
@@ -95,7 +131,7 @@ def inside(bin_size, room_shape):
     if mask is None:
         logging.info('Inside mask for bin side %i not cached. Computing...',bin_size)
         mask = cache_inside_mask(bin_size, room_shape)
-        mask = try_cache(bin_size, room_shape, 'Inside mask')
+        mask = try_cache(cache_key)
 
     return mask
 
@@ -108,10 +144,11 @@ def smooth(array,bin_size, room_shape):
     assert (room_shape[0][1]-room_shape[0][0])/bin_size==array.shape[0]
     assert (room_shape[1][1]-room_shape[1][0])/bin_size==array.shape[1]
     
-    bin_len = (room_shape[0][1]-room_shape[0][0])/bin_size
-    
     ins_mask = inside(bin_size,room_shape)
     
+    #assert np.sum(( 1-ins_mask)*array) == 0
+    ''''''
+    # Debug code
     if np.sum(( 1-ins_mask)*array) != 0:
         print 'Something is going on outside!'
         import pdb; pdb.set_trace()
@@ -124,7 +161,9 @@ def smooth(array,bin_size, room_shape):
         import pdb; pdb.set_trace()
         raise Exception('Something is going on outside!')
     
-    filt = gauss_kernel(int(round(filt_win_ratio*bin_len,0)))
+    filt = gauss_kernel()
+    #array = array + 0j
+    #ins_mask = ins_mask + 0j
     pre_adjusted_rates = np.real(convolve2d(array,filt,mode='same'))
     weight_adjustment = np.real(convolve2d(ins_mask,filt,mode='same'))
     

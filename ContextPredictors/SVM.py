@@ -24,7 +24,7 @@ class SVM(ContextPredictor):
         
     def classify(self,X):
         x,y = X[-2:]
-        xbin,ybin = self.pos_to_xybin(x,y)
+        xbin,ybin = pos_to_xybin(x,y)
         
         try:
             svm = self.svms[xbin][ybin]
@@ -83,7 +83,7 @@ class SVM(ContextPredictor):
                 
                 in_bin = in_x_strip & in_y_strip
                 
-                bin_id = self.bin_id(xbin,ybin,yblen)
+                bin_id = bin_id(xbin,ybin,yblen)
                 
                 indicator[in_bin] = bin_id
         return indicator
@@ -113,7 +113,7 @@ class SVM(ContextPredictor):
         bind =  self._bin_indicator(X[:,-2],X[:,-1],self.xblen,self.yblen,bin_size,room)
         for cxbin, cybin in itertools.product(range(xblen),range(yblen)):
             cursvm = svm.SVC()
-            curid = self.bin_id(cxbin,cybin,yblen)
+            curid = bin_id(cxbin,cybin,yblen)
             in_bin = np.nonzero(bind==curid)[0]
             if len(in_bin) == 0: continue
             if len(np.unique(Y[in_bin])) < 2:

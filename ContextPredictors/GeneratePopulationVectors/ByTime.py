@@ -9,67 +9,72 @@ The Dot Product classifier as described by Jezek, et al (2011)
 import numpy as np
 from scipy.stats import mode
 import logging
+from itertools import product
 
-def _spk_indicators(t_cells,n):
-    ''' t_cells is a dictionary of {(tetrode, cell): spk_i} '''
-    
-    indicator = np.zeros([n,1])
-    for spk_i, j in zip(t_cells.values(),range(len(t_cells))):
-        indicator[spk_i] = j+1
-    return indicator
 
-def generate_population_vectors(vl, t_cells, label_l, K=32):
+from Data.Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
+
+def gpv(vl, t_cells, label_l, K,bin_size, room):
     ''' Returns a matrix of feature vectors.
     
     The feature vector is:
-    [frac cell 1, frac cell 2, ..., frac cell n, mode X, mode Y]
+    [frac cell 1, frac cell 2, ..., frac cell n, frac in bin1, frac in bin2,...]
     
-    The label is the mode bin #.
+    The matrix dimension is [# of vectors, # cells + # bins]
     
     With labels [mode context1, mode context2,...]
     
     K is the length of the subvector that will be used to calculate firing rate
-    t_cells
     '''
     
     # Check data integrity
     assert len(label_l) == len(vl['xs'])
+    assert (room[0][1]-room[0][0]) % bin_size == 0
+    assert (room[1][1]-room[1][0]) % bin_size == 0
     
-    X = np.zeros([len(label_l)/K,len(t_cells)+2]) #Need x y coordinates at the end
-    Y = np.zeros([len(label_l)/K,1])
+    xbins = (room[0][1]-room[0][0]) / bin_size
+    ybins = (room[1][1]-room[1][0]) / bin_size
+    
+    end = (len(label_l)/K)*K    # Use integer roundoff to our advantage
+    logging.warning('Threw away %i/%i points.',len(label_l)-end, len(label_l))
 
     # Generate an indicator array for identity of spiking cell
-    spks = _spk_indicators(t_cells, len(label_l))
+    spks = spk_indicators(t_cells, len(label_l))
+    spks = spks[:end].reshape([K,-1]).astype(int)   # make the right size
+    
+    label_l = label_l[:end].reshape([K,-1])
     
     # Generate an indicator array for bin number
-    #bins = _bin_indicator(vl['xs'],vl['ys'],xbins,ybins,bin_size)
-
-    # Make sure that the length of the info vectors are a multiple
-    #  of K
+    bins = bin_indicator(vl['xs'],vl['ys'],xbins,ybins,bin_size,room)
+    bins = bins[:end].reshape([K,-1])   # Make the right size
     
-    label_l2 = label_l[len(label_l)%K:].reshape([-1,K])
-    spks2 = spks[len(label_l)%K:].reshape([-1,K])
-    #bins2 = bins[len(label_l)%K:].reshape([-1,K])
+    # The main data structures
+    Xs = np.zeros([len(t_cells),end])
     
     # Put in cell firing rates
-    for cell in range(1,len(t_cells)+1): # Don't include silence
-        X[:,cell-1] = np.sum(spks2 == cell,axis=1)
+    for tetrode,cell in t_cells:
+        cur_cell_id = cell_id(tetrode,cell,t_cells)
+        cur_cell_spk = np.bitwise_and(spks, np.ones(spks.shape).astype(int)*2**cur_cell_id)>0
+        Xs[cur_cell_id,:] = np.mean(cur_cell_spk,axis=0)
+
+    # Put bin fractions in 
+    for xbin, ybin in product(range(xbins),range(ybins)):
+        cbin_id = bin_id(xbin,ybin,ybins)
+        cbin_index = bin_index(xbin,ybin,ybins)
+        Xs[len(t_cells)+cbin_index,:] = np.mean(bins==cbin_id,axis=0)
     
-    # Normalize
-    X /= 1.0*K
+    Ys = mode(label_l,axis=0)
     
-    #import pdb; pdb.set_trace()
-    # Now add mean 
-    blocks = []
-    for block in [vl['xs'],vl['ys']]:
-        tmp = block[len(label_l)%K:].reshape([-1,K])
-        tmp = np.mean(tmp,axis=1)
-        blocks.append(tmp)
-    X[:,-2] = blocks[0]
-    X[:,-1] = blocks[1]
+    # All Ys are still valid labels
+    labels = np.unique(label_l)
+    assert np.sum(label_l==labels[0])+np.sum(label_l==labels[1]) == len(label_l)
+
+    # Fractions add up to 1
+    try:
+        assert np.all(1==np.sum(Xs[len(t_cells):,:]))
+    except:
+        print 'poop'
+        import pdb; pdb.set_trace()
     
-    # Put in label
-    Y[:] = mode(label_l2,axis=1)[0].reshape([-1,1])
-    
-    return X,Y
+    return Xs,Ys
             

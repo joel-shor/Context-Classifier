@@ -8,14 +8,7 @@ The Dot Product classifier as described by Jezek, et al (2011)
 import numpy as np
 from scipy.stats import mode
 import logging
-
-def _spk_indicators(t_cells,n):
-    ''' t_cells is a dictionary of {(tetrode, cell): spk_i} '''
-    
-    indicator = np.zeros([n,1])
-    for spk_i, j in zip(t_cells.values(),range(len(t_cells))):
-        indicator[spk_i] = j+1
-    return indicator
+from Data.Analysis.countCells import spk_indicators
 
 def generate_population_vectors(vl, t_cells, label_l, K=32):
     ''' Returns a matrix of feature vectors.
@@ -38,7 +31,7 @@ def generate_population_vectors(vl, t_cells, label_l, K=32):
     Y = np.zeros([len(label_l)/K,1])
 
     # Generate an indicator array for identity of spiking cell
-    spks = _spk_indicators(t_cells, len(label_l))
+    spks = spk_indicators(t_cells, len(label_l))
     
     # Generate an indicator array for bin number
     #bins = _bin_indicator(vl['xs'],vl['ys'],xbins,ybins,bin_size)

@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 from Data.readData import load_mux, load_vl, load_cl
 from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
 from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
-from ContextPredictors.GeneratePopulationVectors.countCells import count_cells
+from Data.Analysis.countCells import count_cells
 
 good_clusters = {1:range(2,8),
                  2:range(2,8),

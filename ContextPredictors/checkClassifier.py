@@ -2,11 +2,11 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-#from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
-#from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
-from ContextPredictors.GeneratePopulationVectors.ByBin import gpv as gpv
+from Data.Analysis.countCells import count_cells
 
-from ContextPredictors.GeneratePopulationVectors.countCells import count_cells2
+from ContextPredictors.GeneratePopulationVectors.ByTime import gpv
+#from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
+#from ContextPredictors.GeneratePopulationVectors.ByBin import gpv
 
 
 def check_classifier(Classifier, good_clusters, label, K, bin_size, 
@@ -22,27 +22,15 @@ def check_classifier(Classifier, good_clusters, label, K, bin_size,
     else:
         raise Exception('Not implemented yet.')
     
-    t_cells = count_cells2(vl,cls,trigger_tm,good_clusters)
-    
-    if len(t_cells) == 0: raise Exception('No cells found')
+    t_cells = count_cells(vl,cls,trigger_tm,good_clusters)
     
     logging.info('About to generate population vector.')
     #X, Y = gpv(vl, t_cells, label_l, K)
     X, Y = gpv(vl, t_cells, label_l, K, bin_size, room_shape)
     logging.info('%i population vectors generated.',X.shape[0])
     Y = Y.reshape([-1])
-    
-    from GenerateFigures.checkGPV import check_gpv
-    print t_cells.keys()[:9]
-    check_gpv(X,Y,bin_size,room_shape,t_cells)
-    import sys; sys.exit()
-    
-    
+
     classifier = Classifier(X,Y, room_shape, bin_size)
-    
-    from GenerateFigures.checkDP import check_dp
-    check_dp(classifier)
-    import sys; sys.exit()
     
     correct_dp = []
     
