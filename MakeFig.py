@@ -17,6 +17,7 @@ from GenerateFigures.dpAccuracy import dp_accuracy
 #from GenerateFigures.generateAmbiguousDataGraphs import generate_ambiguous_data_graphs
 #from GenerateFigures.generateDPPredictionGraph import generate_DP_prediction_graph
 from GenerateFigures.generateAccuracyVsKGraphs import generate_accuracy_vs_k_graphs
+from GenerateFigures.gpvRates import gpv_rates
 
 from GenerateFigures.PaperGraphs.rateGraph import rate_graph
 from GenerateFigures.PaperGraphs.compareGraph import compare
@@ -28,7 +29,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Choose which figure to graph.')
     parser.add_argument('graph_name',help='name of the graph to make',
-                        choices=['clusters','rate','runs','theta','angle','dp_baseline',
+                        choices=['gpv_rates','clusters','rate','runs','theta','angle','dp_baseline',
                                  'spike_rate_diff','dp_accuracy','k_accuracy',
                                  'paper_rate','paper_compare'])
 
@@ -44,6 +45,7 @@ if __name__ == '__main__':
     elif nn == 'dp_baseline':generate_dp_baseline_graphs()
     elif nn == 'dp_accuracy': dp_accuracy()
     elif nn == 'k_accuracy':generate_accuracy_vs_k_graphs()
+    elif nn == 'gpv_rates': gpv_rates()
 
     #generate_DPTimeSeg_accuracy_graph()
     #generate_DP_confidence_graph()

@@ -20,7 +20,7 @@ from Data.goodClusters import get_good_clusters
 from cache import try_cache
 
 def dp_accuracy():
-    CL = CL2
+    CL = CL1
     animal = 66
     session = 60 
     

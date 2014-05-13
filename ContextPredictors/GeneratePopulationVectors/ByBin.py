@@ -8,7 +8,6 @@ The Dot Product classifier as described by Jezek, et al (2011)
 
 import numpy as np
 import logging
-from scipy.stats import mode
 from itertools import product
 from Data.Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
 from Data.Analysis.classifyTask import find_runs
@@ -74,8 +73,7 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
         sgn, run_len = find_runs(sgn2)
         run_start = np.intersect1d(sgn,cur_i)
         
-        if len(run_start) == 0:
-            import pdb; pdb.set_trace()
+        assert len(run_start) > 0
         
         for st in run_start:
             run_l = run_len[sgn==st]
@@ -108,10 +106,8 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
     for xbin,ybin in product(range(xbins),range(ybins)):
         cbin_id = bin_id(xbin,ybin,ybins)
         cbin_index = bin_index(xbin,ybin,ybins)
-        try:
+        if K == 1:
             assert np.sum(bins==cbin_id)==np.sum(Xs[:,len(t_cells)+cbin_index])
-        except:
-            import pdb; pdb.set_trace()
 
     logging.warning('Threw away %i/%i points when generating PV by bin',thrown_away,len(label_l))
 

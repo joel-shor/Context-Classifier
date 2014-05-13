@@ -14,7 +14,6 @@ import logging
 
 if __name__ == '__main__':
     
-
     parser = argparse.ArgumentParser(description='Choose which figure to graph.')
     parser.add_argument('script_name',help='name of the script',
                         choices=['populate_spike_cache',
@@ -22,8 +21,6 @@ if __name__ == '__main__':
                                  'check_gpv'])
 
     nn = parser.parse_args().script_name
-    
-    logging.basicConfig(level=logging.INFO)
     
     if nn == 'populate_spike_cache':    psl()
     elif nn=='update_good_trials':      ugt()

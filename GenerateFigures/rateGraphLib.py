@@ -8,7 +8,7 @@ import numpy as np
 
 def plot_rates(rates,Y,t_cells):
     labels = np.unique(Y)
-    grd = 4
+    grd = 2
     for lbl in range(len(labels)):
         plt.figure()
         plt.subplot(grd,grd,0)

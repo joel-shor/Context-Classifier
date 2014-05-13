@@ -38,7 +38,7 @@ class DotProduct(DotProduct):
         return {self.labels[0]: cntxt0,
                 self.labels[1]: cntxt1}
     
-    def train(self, X,XLocs, YLocs, Y, room, bin_size):
+    def train(self, X, Y, room, bin_size):
         ''' Generate self.base_vec, where
             base_vec[xbin,ybin,context,:] is vector of firing rates.
             
@@ -47,7 +47,7 @@ class DotProduct(DotProduct):
             
             room is [[xmin,xmax],[ymin,ymax]]'''
 
-        super(DotProduct,self).train(X,XLocs, YLocs, Y,room,bin_size)
+        super(DotProduct,self).train(X, Y,room,bin_size)
         # self.base[xbin, ybin, lbl, cell id] = rate
         self.means = 1.0*np.mean(self.base,axis=2)
         self.means[self.means==0] = 1 # If it's 0, then it doesn't matter anyways

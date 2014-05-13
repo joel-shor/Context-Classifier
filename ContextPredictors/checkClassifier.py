@@ -3,10 +3,11 @@ import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
 from Data.Analysis.countCells import count_cells
+from time import time
 
-#from ContextPredictors.GeneratePopulationVectors.ByTime import gpv
+from ContextPredictors.GeneratePopulationVectors.ByTime import gpv
 #from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
-from ContextPredictors.GeneratePopulationVectors.ByBin import gpv
+#from ContextPredictors.GeneratePopulationVectors.ByBin import gpv
 
 
 def check_classifier(Classifier, good_clusters, label, K, bin_size, 
@@ -26,8 +27,9 @@ def check_classifier(Classifier, good_clusters, label, K, bin_size,
     
     logging.info('About to generate population vector.')
     #X, Y = gpv(vl, t_cells, label_l, K)
+    s=time()
     X, Y = gpv(vl, t_cells, label_l, K, bin_size, room_shape)
-    logging.info('%i population vectors generated.',X.shape[0])
+    logging.info('%i population vectors generated in %.3f.',X.shape[0],time()-s)
     Y = Y.reshape([-1])
 
     classifier = Classifier(X,Y, room_shape, bin_size)

@@ -11,7 +11,6 @@ import logging
 
 from ContextPredictors.Predictor import ContextPredictor
 from Data.Analysis.spikeRate import rates_from_pv
-from Data.Analysis.Indicators import pos_to_xybin
 
 class DotProduct(ContextPredictor):
     name = 'Jezek'
@@ -26,16 +25,15 @@ class DotProduct(ContextPredictor):
         self.bins = self.xblen*self.yblen
         self.labels = np.unique(Y)
         
-        
         # This is if X = [cell1, cell2, ..., celln, binfrac1,...,binfrac k^2]
         self.train(X,Y,room, bin_size)
         
     def classify(self,X):
-        x,y = X[-2:]
-        xbin,ybin = pos_to_xybin(x,y, self.xblen,self.yblen,self.bin_size,self.room)
-
-        cntxt0 = np.dot(self.base[xbin,ybin,0,:],X[:-2])
-        cntxt1 = np.dot(self.base[xbin,ybin,1,:],X[:-2])
+        bin_frac = X[-self.bins:].reshape([self.xblen,self.yblen])
+        X = X[:-self.bins]
+        
+        cntxt0 = np.einsum('xy,xyc,c',bin_frac,self.base[:,:,0,:],X)
+        cntxt1 = np.einsum('xy,xyc,c',bin_frac,self.base[:,:,1,:],X)
 
         
         # Normalize
@@ -74,6 +72,9 @@ class DotProduct(ContextPredictor):
             plot_rates(rates,Y,fake_t_cells)
             plt.show()
         
+        self.base = np.transpose(rates,[2,3,1,0])
+        
+        '''
         # format it better
         # rates[xbin, lbl, cell id, ybin] = rate
         rates = np.swapaxes(rates, 0, 2)
@@ -82,6 +83,6 @@ class DotProduct(ContextPredictor):
         rates = np.swapaxes(rates, 1, 3)
         
         # rates[xbin, ybin, lbl, cell id] = rate
-        self.base = np.swapaxes(rates, 2, 3)
+        self.base = np.swapaxes(rates, 2, 3)'''
         
         
