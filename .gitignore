@@ -6,3 +6,4 @@ cache/*
 .pydevproject
 *.m
 Reference\ Matlab\ Files/*
+*.bak

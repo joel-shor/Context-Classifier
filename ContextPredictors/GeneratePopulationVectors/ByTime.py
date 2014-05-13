@@ -49,32 +49,44 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
     bins = bins[:end].reshape([K,-1])   # Make the right size
     
     # The main data structures
-    Xs = np.zeros([len(t_cells),end])
+    Xs = np.zeros([len(t_cells)+xbins*ybins,end/K])
     
     # Put in cell firing rates
     for tetrode,cell in t_cells:
         cur_cell_id = cell_id(tetrode,cell,t_cells)
         cur_cell_spk = np.bitwise_and(spks, np.ones(spks.shape).astype(int)*2**cur_cell_id)>0
         Xs[cur_cell_id,:] = np.mean(cur_cell_spk,axis=0)
-
+        
+        # Make sure spikes don't disappear
+        assert np.sum(cur_cell_spk)==len(np.unique(t_cells[(tetrode,cell)]))
+        
     # Put bin fractions in 
     for xbin, ybin in product(range(xbins),range(ybins)):
         cbin_id = bin_id(xbin,ybin,ybins)
         cbin_index = bin_index(xbin,ybin,ybins)
         Xs[len(t_cells)+cbin_index,:] = np.mean(bins==cbin_id,axis=0)
     
-    Ys = mode(label_l,axis=0)
+    Ys = mode(label_l,axis=0)[0]
     
     # All Ys are still valid labels
     labels = np.unique(label_l)
-    assert np.sum(label_l==labels[0])+np.sum(label_l==labels[1]) == len(label_l)
+    assert np.sum(label_l==labels[0])+np.sum(label_l==labels[1]) == label_l.size
 
     # Fractions add up to 1
-    try:
-        assert np.all(1==np.sum(Xs[len(t_cells):,:]))
-    except:
-        print 'poop'
-        import pdb; pdb.set_trace()
+    assert np.allclose(np.ones(end/K),np.sum(Xs[len(t_cells):,:],axis=0))
+    
+    # Bin time is right
+    
+    
+    # Everything is between 0 and 1
+    assert np.all(Xs>=0) and np.all(Xs<=1)
+    
+    # Check that no spikes are missing
+    for tetrode,cell in t_cells:
+        actual_spks = len(np.unique(t_cells[(tetrode,cell)]))
+        iid = cell_id(tetrode,cell,t_cells)
+        Xs_spks = K*np.sum(Xs[iid,:])
+        assert np.allclose(Xs_spks,actual_spks)
     
     return Xs,Ys
             

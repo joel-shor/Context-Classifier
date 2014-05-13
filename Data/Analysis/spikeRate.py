@@ -11,13 +11,18 @@ import logging
 
 from Data.findInside import cache_inside_mask
 from cache import try_cache
-from Data.Analysis.Indicators import bin_indicator, bin_id, cell_id
+from Data.Analysis.Indicators import bin_indicator, bin_id, cell_id, bin_index
 
 tpp = .02 #Time per point (seconds) 
 
-def rates_from_pv(X,Y,bin_size,room,smooth_flag=True):
+def rates_from_pv_old(X,Y,bin_size,room,smooth_flag=True):
     ''' Convert population vectors to firing rates.
-        rates[cell id, lbl, xbin, ybin] = rate'''
+        rates[cell id, lbl, xbin, ybin] = rate
+        
+        ***DIFFERENCE
+        This is if the Xs are  [cell1,...,cell2,xbin,ybin]
+        instead of             [cell1,...,cell2,bin1frac,bin2frac,...,zbinfrac]
+        '''
     assert (room[0][1]-room[0][0])%bin_size == 0
     assert (room[1][1]-room[1][0])%bin_size == 0
     
@@ -57,6 +62,70 @@ def rates_from_pv(X,Y,bin_size,room,smooth_flag=True):
     
     return rates
 
+def rates_from_pv(X,Y,bin_size,room,smooth_flag=True):
+    ''' Convert population vectors to firing rates.
+        rates[cell id, lbl, xbin, ybin] = rate
+        
+        ***DIFFERENCE
+        This is if the Xs are [[cell1,...,cell2,bin1frac,bin2frac,...,zbinfrac],...]
+        instead of            [cell1,...,cell2,xbin,ybin]
+        '''
+    assert (room[0][1]-room[0][0])%bin_size == 0
+    assert (room[1][1]-room[1][0])%bin_size == 0
+    
+    xbins = (room[0][1]-room[0][0])/bin_size
+    ybins = (room[1][1]-room[1][0])/bin_size
+    
+    # Add an extra dimension for the einsum
+    bin_frac = X[:,-xbins*ybins:].reshape([X.shape[0],xbins*ybins,1])
+    X = X[:,:-xbins*ybins].reshape([X.shape[0],X.shape[1]-xbins*ybins,1])
+    
+    # Generate an array [cells,xbins*ybins,# examples]
+    #  where the value is the ith cell's contribute to
+    #  firing in bin j on example k
+    import time
+    print 'starting'
+    s = time.time()
+    cell_firings = np.einsum('ncs,nbs->cbn',X,bin_frac)
+    print 'Took time %.3f'%(time.time()-s,)
+    import pdb; pdb.set_trace()
+    
+    labels = np.unique(Y)
+    bin_frac = bin_frac.reshape(bin_frac.shape[:-1])
+    
+    # Cell, label, xbin, ybin
+    spks = np.zeros([X.shape[1],len(labels),xbins,ybins])
+    time_spent = np.zeros([len(labels),xbins,ybins])
+
+    for lbl in range(len(labels)):
+        lbl_is = (Y==labels[lbl])
+        sp = np.sum(cell_firings[:,:,lbl_is],axis=2)
+        tm = np.sum(bin_frac[lbl_is,:],axis=0)
+        
+        # Load spikes into matrix
+        spks[:,lbl,:,:] = sp.reshape([-1,xbins,ybins])
+        
+        #Load times into time_spent
+        time_spent[lbl,:,:] = tm.reshape([-1,xbins,ybins])
+    
+    ''' There is not check that x and y axes are not messed up,
+        but it worked in trial code and it will be seen in classifier
+        accuracy. '''
+    
+    if smooth_flag:
+        for cell,lbl in product(range(spks.shape[0]),range(spks.shape[1])):
+            spks[cell,lbl] = smooth(spks[cell,lbl], bin_size, room)
+        for lbl in range(time_spent.shape[0]):
+            time_spent[lbl,:,:] = smooth(time_spent[lbl], bin_size, room)
+    
+    # Prevent divide by 0
+    time_spent[time_spent==0]=1
+    
+    for cell in range(spks.shape[0]):
+        spks[cell] = 1.0*spks[cell]/time_spent/tpp
+    
+    return spks
+
 def get_rates(x,y,label_l, room, bin_size, t_cells, smooth_flag=True):
     
     assert (room[0][1]-room[0][0])%bin_size == 0
@@ -72,7 +141,7 @@ def get_rates(x,y,label_l, room, bin_size, t_cells, smooth_flag=True):
     bin_is = {(xbin,ybin):np.nonzero(bins==bin_id(xbin,ybin,ybins))[0] for xbin,ybin in product(range(xbins),range(ybins))}
     
     spks = np.zeros([len(t_cells),len(labels),xbins,ybins])
-    time_spent = np.zeros([len(t_cells),len(labels),xbins,ybins])
+    time_spent = np.zeros([len(labels),xbins,ybins])
     
     logging.info('Calculating firing rates')
     for xbin,ybin,lbl in product(range(xbins),range(ybins),labels):
@@ -84,8 +153,7 @@ def get_rates(x,y,label_l, room, bin_size, t_cells, smooth_flag=True):
         time_i = np.intersect1d(bin_i,lbl_i)
         if len(time_i)==0:continue # no time spent in bin
         cur_lbl_id = np.where(labels==lbl)
-        time_spent[:,cur_lbl_id,xbin,ybin] = len(time_i)
-        
+        time_spent[cur_lbl_id,xbin,ybin] = len(time_i)
         
         for key in t_cells.keys():
             
@@ -101,12 +169,16 @@ def get_rates(x,y,label_l, room, bin_size, t_cells, smooth_flag=True):
     if smooth_flag:
         for cell,lbl in product(range(spks.shape[0]),range(spks.shape[1])):
             spks[cell,lbl] = smooth(spks[cell,lbl], bin_size, room)
-            time_spent[cell,lbl] = smooth(time_spent[cell,lbl], bin_size, room)
+        for lbl in range(time_spent.shape[0]):
+            time_spent[lbl,:,:] = smooth(time_spent[lbl], bin_size, room)
     
     # Prevent divide by 0
     time_spent[time_spent==0]=1
     
-    return 1.0*spks/time_spent/tpp
+    for cell in range(spks.shape[0]):
+        spks[cell] = 1.0*spks[cell]/time_spent/tpp
+    
+    return spks
 
 
 def hamm_kernel(N):
@@ -197,7 +269,16 @@ def smooth(array,bin_size, room_shape):
     return np.real(adjusted_rates)
 
 if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    #import pdb; pdb.set_trace()
-    plt.pcolor(inside(120/8))
-    plt.show()
+    # Test the einsum command
+    
+    bin_frac = np.arange(8).reshape(4,2,1)
+    X = np.arange(0,30,5).reshape(2,2,1)
+    
+    # Generate an array [cells,xbins*ybins,# examples]
+    #  where the value is the ith cell's contribute to
+    #  firing in bin j on example k
+    cell_firings = np.einsum('ncs,nbs->cbn',X,bin_frac)
+    print X
+    print bin_frac
+    print cell_firings
+

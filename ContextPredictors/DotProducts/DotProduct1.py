@@ -23,11 +23,12 @@ class DotProduct(ContextPredictor):
         self.room=room
         self.xblen = (room[0][1]-room[0][0])/bin_size
         self.yblen = (room[1][1]-room[1][0])/bin_size
+        self.bins = self.xblen*self.yblen
         self.labels = np.unique(Y)
         
-        XLocs = X[:,-1]
-        YLocs = X[:,-2]
-        self.train(X,XLocs,YLocs, Y,room, bin_size)
+        
+        # This is if X = [cell1, cell2, ..., celln, binfrac1,...,binfrac k^2]
+        self.train(X,Y,room, bin_size)
         
     def classify(self,X):
         x,y = X[-2:]
@@ -51,7 +52,7 @@ class DotProduct(ContextPredictor):
         return {self.labels[0]: cntxt0,
                 self.labels[1]: cntxt1}
     
-    def train(self, X,XLocs, YLocs, Y, room, bin_size):
+    def train(self, X, Y, room, bin_size):
         ''' Generate self.base_vec, where
             base_vec[xbin,ybin,context,:] is vector of firing rates.
             

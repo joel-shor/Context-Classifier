@@ -4,9 +4,9 @@ import numpy as np
 from Data.readData import load_mux, load_vl, load_cl
 from Data.Analysis.countCells import count_cells
 
-from ContextPredictors.GeneratePopulationVectors.ByTime import gpv
+#from ContextPredictors.GeneratePopulationVectors.ByTime import gpv
 #from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
-#from ContextPredictors.GeneratePopulationVectors.ByBin import gpv
+from ContextPredictors.GeneratePopulationVectors.ByBin import gpv
 
 
 def check_classifier(Classifier, good_clusters, label, K, bin_size, 
