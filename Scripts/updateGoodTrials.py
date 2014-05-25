@@ -11,11 +11,11 @@ The key is of the form ('Good trials')
 Good trials have task labels and at least 1 labeled cell.
 '''
 
-from cache import try_cache, store_in_cache
+from Cache.cache import try_cache, store_in_cache
 from Data.readData import load_mux, load_vl, load_cl
 import logging
 
-from Data.Analysis.countCells import count_cells
+from Analysis.countCells import count_cells
 from Data import goodClusters
 
 
@@ -23,7 +23,7 @@ from Data import goodClusters
 def run():
     logging.basicConfig(level=logging.INFO)
     cache_key = 'Good trials'
-    animals = [66,70]
+    animals = [66,73]
     sessions = range(100)
     _, good_clusters = goodClusters.get_good_clusters(0)
     
@@ -34,6 +34,7 @@ def run():
     for animal in animals:
         if animal not in good_trials: good_trials[animal] = []
         for session in sessions:
+            if session in good_trials[animal]: continue
             try:
                 fn, trigger_tm = load_mux(animal, session)
             except:
@@ -48,9 +49,10 @@ def run():
             
             cls = {tetrode:load_cl(animal,fn,tetrode) for tetrode in range(1,17)}
             
-            t_cells = count_cells(vl,cls,trigger_tm, good_clusters)
-            
-            if len(t_cells) == 0:
+            try:
+                count_cells(vl,cls,trigger_tm, good_clusters)
+            except:
+                # No cells found
                 continue
             
             if session not in good_trials[animal]:

@@ -12,7 +12,7 @@ The cache key is of the form (bin_size, room_shape, 'Inside mask')
 import logging
 import numpy as np
 
-from cache import try_cache,store_in_cache
+from Cache.cache import try_cache,store_in_cache
 from readData import load_mux, load_vl
 
 def cache_inside_mask(bin_size, room_shape):

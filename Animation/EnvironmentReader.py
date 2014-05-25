@@ -33,9 +33,9 @@ class EnvironmentReader(Reader):
         
         self.pos, = self.ax.plot([],[],color='g',animated=True)
         self.vel = Arrow([0,0],[1,0],arrowstyle='-|>, head_length=3, head_width=3',
-                         animated=True)
+                         animated=True, linewidth=4)
         self.ax.add_patch(self.vel)
-        self.radius, = self.ax.plot([],[],color='r',animated=True)
+        #self.radius, = self.ax.plot([],[],color='r',animated=True)
         self.clockcounter = self.ax.text(self.maxx,room_shape[1][0],
                                          '',ha='right',size='large',
                                          animated=True)
@@ -134,7 +134,7 @@ class EnvironmentReader(Reader):
             self.vel.set_positions([x, y], [x+vx,y+vy])
 
         # Adjust radius line
-        self.radius.set_data([self.cntr_x,x],[self.cntr_y,y])
+        #self.radius.set_data([self.cntr_x,x],[self.cntr_y,y])
 
         # Calculate physical orientation, display it, and compare with
         #  virmenLog's orientatino assessment
@@ -157,7 +157,7 @@ class EnvironmentReader(Reader):
             #logging.warning('Make prediction failed.')
 
         # Update the drawing window
-        for itm in [self.pos, self.vel, self.radius,
+        for itm in [self.pos, self.vel, #self.radius,
                     self.clockcounter,self.iters, 
                     self.predicted_counter, self.target]:
             self.ax.draw_artist(itm)

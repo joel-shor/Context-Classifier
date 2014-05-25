@@ -50,7 +50,4 @@ class MainWin:
         
         self.iter_num += self.step
         
-        if self.iter_num > 60000:
-            return False
-        else:
-            return True
+        return True

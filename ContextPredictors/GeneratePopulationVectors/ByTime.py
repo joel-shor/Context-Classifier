@@ -12,13 +12,13 @@ import logging
 from itertools import product
 
 
-from Data.Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
+from Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
 
 def gpv(vl, t_cells, label_l, K,bin_size, room):
     ''' Returns a matrix of feature vectors.
     
     The feature vector is:
-    [frac cell 1, frac cell 2, ..., frac cell n, frac in bin1, frac in bin2,...]
+    [fr cell 1, fr cell 2, ..., fr cell n, frac in bin1, frac in bin2,...]
     
     The matrix dimension is [# of vectors, # cells + # bins]
     
@@ -34,6 +34,7 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
     
     xbins = (room[0][1]-room[0][0]) / bin_size
     ybins = (room[1][1]-room[1][0]) / bin_size
+    
     
     end = (len(label_l)/K)*K    # Use integer roundoff to our advantage
     logging.warning('Threw away %i/%i points.',len(label_l)-end, len(label_l))
@@ -61,6 +62,8 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
         
         # Make sure spikes don't disappear
         assert np.sum(cur_cell_spk)==len(np.unique(t_cells[(tetrode,cell)]))
+        
+        
         
     # Put bin fractions in 
     for xbin, ybin in product(range(xbins),range(ybins)):

@@ -12,7 +12,7 @@ import gobject as gobj
 import logging
 
 from Data.readData import load_mux, load_vl, load_wv, load_cl
-from Data.Analysis.matchClToVl import match_cl_to_vl
+from Analysis.matchClToVl import match_cl_to_vl
 #from ContextPredictors.PiecewiseHMM import PiecewiseHMM
 #from ContextPredictors.DotProduct import DotProduct
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     CPr = None
     top = MainWin(step=animation_step_size)
     top.init_ER(vl, room_shape)
-    top.init_WR(wv, cl, wv_iters)
+    #top.init_WR(wv, cl, wv_iters)
     top.add_predictor(CPr)
     gobj.timeout_add(timeout_rate,top.update)
     gtk.main()

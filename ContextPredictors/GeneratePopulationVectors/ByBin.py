@@ -9,15 +9,16 @@ The Dot Product classifier as described by Jezek, et al (2011)
 import numpy as np
 import logging
 from itertools import product
-from Data.Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
-from Data.Analysis.classifyTask import find_runs
+from Analysis.Indicators import bin_indicator, spk_indicators, bin_id, cell_id, bin_index
+from Analysis.classifyTask import find_runs
 
 
 def gpv(vl, t_cells, label_l, K,bin_size, room):
-    ''' Returns a matrix of feature vectors.
+    ''' Returns a matrix of feature vectors that is
+        firing rate.
     
     The feature vector is:
-    [frac cell 1, frac cell 2, ..., frac cell n, mode X, mode Y]
+    [fr cell 1, fr cell 2, ..., fr cell n, mode X, mode Y]
     
     With labels [mode context1, mode context2,...]
     
@@ -31,7 +32,6 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
     #cache_key = (vl['xs'][::100],t_cells,label_l[::112],K,bin_size,room,'gpv by bin')
     #cache = try_cache(cache_key)
     #if cache is not None: return cache
-    
     
     xbins = (room[0][1]-room[0][0]) / bin_size
     ybins = (room[1][1]-room[1][0]) / bin_size
@@ -92,7 +92,6 @@ def gpv(vl, t_cells, label_l, K,bin_size, room):
                 rt = np.sum(tmp,axis=0)
 
                 X[:,cur_cell_id] = rt
-            X /= 1.0*K
             X[:,len(t_cells)+bin_index(xbin,ybin,ybins)] = 1
             Xs.append(X)
             Ys.append(np.ones([delt/K])*lbl)

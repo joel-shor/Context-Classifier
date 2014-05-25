@@ -2,16 +2,15 @@ import logging
 import numpy as np
 
 from ContextPredictors.GeneratePopulationVectors.ByTime import gpv as gpv1
-#from ContextPredictors.GeneratePopulationVectors.ByTimeWithSilence import generate_population_vectors as gpv
 from ContextPredictors.GeneratePopulationVectors.ByBin import gpv as gpv2
 
-from Data.Analysis.countCells import count_cells
+from Analysis.countCells import count_cells
 
-from Data.Analysis.spikeRate import get_rates, rates_from_pv
+from Analysis.spikeRate import get_fracs, fracs_from_pv
 from Data.readData import load_mux, load_vl, load_cl
 
 
-from GenerateFigures.rateGraphLib import plot_rates
+from Figures.rateGraphLib import plot_rates
 from matplotlib import pyplot as plt
 
 
@@ -23,7 +22,7 @@ def checkGPV():
     tetrodes = [1]
     cells = range(2,10)
     bin_size = 5
-    K =  2# Segment length used to calculate firing rates
+    K =  1# Segment length used to calculate firing rates
     
     
     maxs = 10000
@@ -53,7 +52,7 @@ def checkGPV():
             tmp = tmp[tmp<maxs]
             t_cells[key] = tmp
     
-    for gpv in [gpv1,gpv2]:
+    for gpv in [gpv1]:
     
         logging.info('About to generate population vector.')
         X, Y = gpv(vl, t_cells, label_l, K, bin_size, room_shape)
@@ -67,10 +66,10 @@ def checkGPV():
             assert tot_spks == np.sum(X[:,:len(t_cells)])*K
 
         # GPV rates
-        rates = rates_from_pv(X,Y,bin_size,room_shape,smooth_flag=False)
+        rates = fracs_from_pv(X,Y,bin_size,room_shape,smooth_flag=False)
         
         # Now get normally calculate rates
-        real_rates = get_rates(vl['xs'],vl['ys'],label_l,room_shape,bin_size, t_cells,smooth_flag=False)
+        real_rates = get_fracs(vl['xs'],vl['ys'],label_l,room_shape,bin_size, t_cells,smooth_flag=False)
         
         try:
             assert np.all(rates == real_rates)

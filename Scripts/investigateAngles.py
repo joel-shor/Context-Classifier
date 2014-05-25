@@ -4,8 +4,8 @@ Created on Mar 29, 2014
 @author: jshor
 '''
 
-from Data.Analysis.findAmbiguousData import find_ambiguous_data
-from GenerateFigures.generateAngleGraphs import mk_grph
+from Analysis.findAmbiguousData import find_ambiguous_data
+from Figures.generateAngleGraphs import mk_grph
 from matplotlib import pyplot as plt
 import logging
 

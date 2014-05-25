@@ -11,8 +11,8 @@ import logging
 import numpy as np
 
 from Data.readData import load_mux, load_vl, load_cl
-from Data.Analysis.getClusters import spike_loc
-from ContextPredictors.DotProducts.DotProduct1 import DotProduct as Classifier
+from Analysis.getClusters import spike_loc
+from ContextPredictors.Predictors.DotProducts.DotProduct1 import DotProduct as Classifier
 from ContextPredictors.GeneratePopulationVectors.ByTime import generate_population_vectors as gpv
 
 good_clusters = {1:range(2,8),
